@@ -4,6 +4,8 @@
 
 GitHub：<https://github.com/junedanglaotou/Xtag>
 
+构建下载：[GitHub Actions](https://github.com/junedanglaotou/Xtag/actions) 中打开成功的 `XTag checks` 运行，在 Artifacts 下载 `xtag-0.1.0`；其中包含 Chrome / Edge、Firefox、Safari 转换源和完整源码包。GitHub 下载 Actions artifact 可能要求登录。本地现成产物在 `dist/`。
+
 > 本版本浏览器测试使用本地 X DOM fixtures。没有登录真实 X，不能将测试结果理解为真实 X 网站已验证。Safari 源构建不等于已签名可安装的 Safari App。详见 [测试报告](TEST_REPORT.md) 和 [兼容性](COMPATIBILITY.md)。
 
 ## 立即安装 Chrome / Edge

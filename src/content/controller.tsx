@@ -61,7 +61,14 @@ export function startXTag() {
       const label = document.createElement('span'); label.textContent = tag;
       const count = document.createElement('span'); count.textContent = `${counts[tag]}次`; item.append(label, count);
       item.onclick = async event => {
-        event.stopPropagation(); const post = { ...binding.post }; hideMenu(true);
+        event.stopPropagation();
+        // A virtual list may recycle the article between opening and choosing a label.
+        const article = binding.host.closest<HTMLElement>(ARTICLE);
+        const current = article ? recognizePost(article) : null;
+        if (!current || current.postId !== binding.post.postId || !sameAuthor(current, binding.post)) {
+          hideMenu(); schedule(); toast('帖子已变化，请重新选择标签'); return;
+        }
+        const post = { ...current }; hideMenu(true);
         try { const result = await request({ type: 'set', post, tag, toggle: true }); if (!disposed) { records = result.records; refresh(); } }
         catch (e) { if (!disposed) toast((e as Error).message); }
       };
@@ -123,7 +130,12 @@ export function startXTag() {
       button.innerHTML = '<span></span><svg aria-hidden="true" viewBox="0 0 10 10"><path d="m2 3 3 3 3-3" fill="none" stroke="currentColor" stroke-width="1.2"/></svg>';
       root.append(css, button);
       const binding: Binding = { post, host, button }; bindings.set(article, binding);
-      button.onclick = event => { event.preventDefault(); event.stopPropagation(); openMenu(binding); };
+      button.onclick = event => {
+        event.preventDefault(); event.stopPropagation();
+        const current = recognizePost(article);
+        if (!current || current.postId !== binding.post.postId || !sameAuthor(current, binding.post)) { hideMenu(); schedule(); return; }
+        binding.post = current; openMenu(binding);
+      };
       placeControl(article, binding);
     }
     const handle = profileHandle(location.pathname);

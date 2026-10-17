@@ -118,3 +118,15 @@ test('cross-tab writes update all views without lost records', async () => {
   await second.locator('xtag-overlay').getByRole('menuitemradio', { name: '高质 0次' }).click();
   await expect(control('102').locator('span')).toHaveText('高质');
 });
+test('recycled post cannot receive a stale menu selection before the observer runs', async () => {
+  await control('101').click();
+  await page.evaluate(() => {
+    const article = document.querySelector('[data-post="101"]')!;
+    article.querySelector('a[href="/alice/status/101"]')!.setAttribute('href', '/ellen/status/888');
+    const host = document.querySelector('xtag-overlay')!;
+    (host.shadowRoot!.querySelector('[role="menuitemradio"]') as HTMLButtonElement).click();
+  });
+  await expect(control('888').locator('span')).toHaveText('');
+  await page.goto(`chrome-extension://${extensionId}/records.html`);
+  await expect(page.locator('.record')).toHaveCount(0);
+});

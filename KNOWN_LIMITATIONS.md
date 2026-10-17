@@ -29,4 +29,4 @@
 - Firefox 未取得 Mozilla 签名；正常永久安装和 Android 稳定版分发未完成。
 - Safari 未转换为 Xcode 工程，未编译 / Apple 签名 / 安装；没有可直接安装的 iOS App。
 - 所有商店审核未执行。没有自动发表任何 X 内容。
-- GitHub Actions 文件已提供，是否在远程通过需以实际 Actions 运行状态为准。
+- GitHub Actions 首轮 Ubuntu 全流程已通过，后续提交状态以仓库 Actions 为准。
