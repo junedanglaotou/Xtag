@@ -1,0 +1,54 @@
+name: Safari macOS developer build
+on:
+  workflow_dispatch:
+  push:
+    branches: [main]
+permissions:
+  contents: read
+jobs:
+  package-macos:
+    runs-on: macos-15
+    timeout-minutes: 20
+    steps:
+      - uses: actions/checkout@v4
+      - uses: actions/setup-node@v4
+        with:
+          node-version: '24'
+          cache: npm
+      - run: npm ci
+      - run: npm run build:safari
+      - name: Generate macOS container project
+        run: sh scripts/convert-safari.sh --macos-only
+      - name: Compile app and extension without an Apple certificate
+        shell: bash
+        run: |
+          set -euo pipefail
+          project=$(find safari-project -name '*.xcodeproj' -type d -print -quit)
+          test -n "$project"
+          xcodebuild -project "$project" -scheme XTag -configuration Release \
+            -destination 'generic/platform=macOS' -derivedDataPath macos-build \
+            CODE_SIGNING_ALLOWED=NO CODE_SIGNING_REQUIRED=NO \
+            MACOSX_DEPLOYMENT_TARGET=12.0 ARCHS='arm64 x86_64' ONLY_ACTIVE_ARCH=NO build
+      - name: Archive developer app and project
+        shell: bash
+        run: |
+          set -euo pipefail
+          mkdir -p dist
+          app='macos-build/Build/Products/Release/XTag.app'
+          test -d "$app/Contents/PlugIns"
+          manifest=$(find "$app/Contents/PlugIns" -name manifest.json -print -quit)
+          test -n "$manifest"
+          ditto -c -k --sequesterRsrc --keepParent "$app" dist/xtag-0.1.1-macos-unsigned-app.zip
+          ditto -c -k --sequesterRsrc --keepParent safari-project dist/xtag-0.1.1-safari-xcode-project.zip
+          printf '%s\n' \
+            'Developer test build only: no Apple developer signature or notarization.' \
+            'Compilation does not verify Safari activation, permissions or real x.com behavior.' \
+            'If macOS rejects this unsigned app, use the included Xcode project with your own development signing.' \
+            'Safari 27 can also load the original WebExtension resources as a temporary developer extension.' \
+            > dist/SAFARI-DEVELOPER-BUILD.txt
+          shasum -a 256 dist/*.zip > dist/SAFARI-SHA256SUMS.txt
+      - uses: actions/upload-artifact@v4
+        with:
+          name: xtag-safari-macos-developer
+          path: dist/
+          if-no-files-found: error

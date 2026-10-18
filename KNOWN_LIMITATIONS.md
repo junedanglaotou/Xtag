@@ -30,3 +30,6 @@
 - Safari 未转换为 Xcode 工程，未编译 / Apple 签名 / 安装；没有可直接安装的 iOS App。
 - 所有商店审核未执行。没有自动发表任何 X 内容。
 - GitHub Actions 首轮 Ubuntu 全流程已通过，后续提交状态以仓库 Actions 为准。
+
+
+0.1.1 跟进：菜单不再无条件依赖 Safari 17 的 Popover API；已新增 macOS 原生 App 构建工作流，尚未运行。没有获得 Apple 开发者签名 / 公证，也没有在用户真实 Safari 上复现。详情见 SAFARI_TROUBLESHOOTING.md。

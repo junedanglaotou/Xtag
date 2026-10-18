@@ -5,6 +5,7 @@ import { TAGS, countsFor, sameAuthor, type Author, type Mark, type Post, type Ta
 import { request, subscribe } from '../platform/client';
 import { ARTICLE, ownedBy, profileHandle, recognizePost } from '../dom/recognize';
 import { buttonStyles, overlayStyles } from './styles';
+import { createMenuSurface } from './menu-surface';
 
 interface Binding { post: Post; host: HTMLElement; button: HTMLButtonElement }
 export function startXTag() {
@@ -21,10 +22,11 @@ export function startXTag() {
   const style = document.createElement('style'); style.textContent = overlayStyles + appStyles; shadow.append(style);
   document.documentElement.append(overlayHost);
   const menu = document.createElement('div'); menu.className = 'menu'; menu.setAttribute('role', 'menu'); menu.setAttribute('aria-label', '私人标签'); menu.setAttribute('popover', 'manual'); shadow.append(menu);
+  const menuSurface = createMenuSurface(menu);
   const modal = document.createElement('dialog'); modal.className = 'modal'; modal.setAttribute('aria-label', '标签记录'); shadow.append(modal);
   let active: Binding | undefined;
   function hideMenu(focus = false) {
-    if (menu.matches(':popover-open')) menu.hidePopover();
+    menuSurface.hide();
     active?.button.setAttribute('aria-expanded', 'false');
     if (focus && active?.host.isConnected) active.button.focus();
     active = undefined;
@@ -87,7 +89,7 @@ export function startXTag() {
   function openMenu(binding: Binding) {
     if (active === binding) { hideMenu(true); return; }
     hideMenu(); active = binding; binding.button.setAttribute('aria-expanded', 'true'); renderMenu(binding);
-    menu.showPopover(); placeMenu(); menu.querySelector('button')?.focus();
+    menuSurface.show(); placeMenu(); menu.querySelector('button')?.focus();
   }
   function closeModal() {
     if (modal.open) modal.close(); modalRoot?.unmount(); modalRoot = undefined; modal.replaceChildren();

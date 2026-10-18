@@ -63,3 +63,6 @@ sh scripts/convert-safari.sh
 使用 popover / dialog 顶层 UI；Safari 需支持相应 Web API（建议 17+），最低系统版本须在 Xcode 与真机验证后确定。未执行旧版 Safari 回退测试。
 
 官方流程：[Converting a web extension for Safari](https://developer.apple.com/documentation/safariservices/converting-a-web-extension-for-safari)。
+
+
+0.1.1 Safari 修复进度：已新增菜单 API 回退、兼容新旧 Xcode 打包工具及 macOS 容器 App 编译工作流。该工作流尚待首次运行；此前表格的“未转换 / 未编译”是 0.1.0 状态。详见 SAFARI_TROUBLESHOOTING.md。真实 Safari 故障仍在收集版本和失败步骤。

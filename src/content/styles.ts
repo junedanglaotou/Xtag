@@ -7,6 +7,7 @@ button:hover{background:#80918820}button:focus-visible{outline:2px solid #4b9f70
 export const overlayStyles = `
 :host{all:initial;position:fixed;inset:0;z-index:2147483647;pointer-events:none;color-scheme:light dark}
 *{box-sizing:border-box}.menu,.modal,.toast{pointer-events:auto;font:14px/1.5 system-ui,sans-serif;color:#192922;background:#fff;border:1px solid #dfe5dd;box-shadow:0 12px 44px #0003;border-radius:12px}
+.menu[hidden]{display:none!important}
 .menu{position:fixed;margin:0;padding:6px;width:184px;max-width:calc(100vw - 16px)}
 .menu button{display:flex;justify-content:space-between;gap:18px;width:100%;min-height:44px;border:0;border-radius:7px;padding:10px 12px;color:inherit;background:transparent;font:inherit;cursor:pointer;text-align:left}
 .menu button:hover,.menu button:focus-visible{background:#80918820;outline:2px solid #4b9f70;outline-offset:-2px}.menu button[aria-checked=true]{background:#4b9f701a;font-weight:700}.menu small{display:block;font-size:10px;color:#738078;padding:5px 12px}.menu span:last-child{opacity:.65}

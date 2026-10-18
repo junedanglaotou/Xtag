@@ -38,3 +38,6 @@ Playwright 使用 Chrome for Testing 156.0.8078.4 加载实际生产 MV3 扩展�
 `npm test`、`npm run test:e2e`；浏览器结果输出在 `test-results/e2e.json`、`playwright-report/index.html`，失败时保存 trace。截图在 `test-results/mobile-narrow.png` 和 `test-results/desktop-site-layout.png`。
 
 没有登录真实 X，没有验证真实 For You / Following / 搜索页面。视口模拟不等于 Android / iOS 真机通过。Firefox 和 Safari 仅构建，没有运行。远程 CI 是否通过另行记录。
+
+
+0.1.1 更新：26/26 单元测试（含新增 3 项 Safari 菜单能力检测 / 回退测试）与类型检查通过；本次 11/11 Chromium 浏览器回归通过（25.0s）；Chrome / Firefox / Safari 三目标构建通过。macOS 原生编译结果待首次 CI 运行。之前 23/23、11/11 是 0.1.0 的记录。
