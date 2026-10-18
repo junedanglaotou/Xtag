@@ -20,6 +20,10 @@
 .xtag-app .brand { display:flex; align-items:center; gap:12px; }
 .xtag-app .logo { background:var(--ink); color:var(--bg); font-size:22px; border-radius:12px; width:44px; height:44px; display:grid; place-items:center; font-weight:700; }
 .xtag-app .intro { margin:12px 0 24px; color:var(--muted); }
+.xtag-app .scope-switch { display:flex; gap:8px; flex-wrap:wrap; margin:16px 0; }
+.xtag-app .scope-switch button[aria-pressed=true] { border-color:var(--accent); box-shadow:inset 0 0 0 1px var(--accent); }
+.xtag-app .scope-total { margin:16px 0; }
+.xtag-app .scope-total strong { font-size:22px; }
 .xtag-app .stats { display:grid; grid-template-columns:repeat(4,minmax(0,1fr)); gap:10px; margin:20px 0; }
 .xtag-app .stat { padding:14px; border:1px solid var(--line); background:var(--panel); border-radius:12px; text-align:left; }
 .xtag-app .stat[data-tag],.xtag-app select[data-tag] { background:var(--xtag-highlight,var(--panel)); }
@@ -35,7 +39,8 @@
 .xtag-app .actions { display:flex; align-items:center; gap:8px; }
 .xtag-app .empty { padding:46px 20px; border:1px dashed var(--line); border-radius:12px; text-align:center; color:var(--muted); }
 .xtag-app .backup { margin-top:28px; padding-top:20px; border-top:1px solid var(--line); }
-.xtag-app .backup-actions { display:flex; gap:10px; flex-wrap:wrap; margin:14px 0; }
+.xtag-app .backup-actions { display:flex; gap:10px; flex-wrap:wrap; align-items:flex-end; margin:14px 0; }
+.xtag-app .export-label { display:flex; flex-direction:column; gap:4px; max-width:100%; }
 .xtag-app .status { padding:10px 0; color:var(--accent); }
 .xtag-app .danger { color:#cf635d; }
 .xtag-app .popup { width:340px; padding:24px; }

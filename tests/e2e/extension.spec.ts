@@ -4,6 +4,7 @@ import { tmpdir } from 'node:os';
 import path from 'node:path';
 import { fixture, tweet } from './fixture';
 import { launchExtension } from './browser';
+import { TAGS, parseBackup, type Mark } from '../../src/core/model';
 let context: BrowserContext; let page: Page; let directory: string; let extensionId: string;
 let stopBrowser: (() => Promise<void>) | undefined;
 const control = (id: string) => page.locator(`xtag-control[data-post-id="${id}"] button`);
@@ -196,3 +197,110 @@ test('old unknown backups display, filter, export and cancel as the yellow usele
   await expect(control('101').locator('span')).toHaveText('');
   await expect(control('101')).not.toHaveAttribute('data-tag', /.+/);
 });
+
+const exportRecords: Mark[] = TAGS.flatMap((tag, i) => ['alice', 'bob'].map((authorHandle, j) => ({
+  postId: String(500 + i * 2 + j), authorHandle, authorDisplayName: authorHandle,
+  postUrl: `https://x.com/${authorHandle}/status/${500 + i * 2 + j}`, postTextSnippet: `分类记录 ${tag} ${authorHandle}`,
+  tag, createdAt: '2026-10-01T00:00:00.000Z', updatedAt: '2026-10-02T00:00:00.000Z',
+})));
+async function seedRecords(records: Mark[]) {
+  await page.goto(`chrome-extension://${extensionId}/records.html`);
+  await page.getByLabel('选择 JSON 备份').setInputFiles({ name: 'seed.json', mimeType: 'application/json', buffer: Buffer.from(JSON.stringify({ schemaVersion: 1, records })) });
+  await expect(page.getByRole('status')).toContainText(`新增 ${records.length} 条`);
+}
+async function downloadRecords(button: ReturnType<Page['getByRole']>) {
+  const downloaded = page.waitForEvent('download'); await button.click(); const file = await downloaded;
+  const backup = JSON.parse(await readFile((await file.path())!, 'utf8'));
+  return { records: parseBackup(backup), filename: file.suggestedFilename() };
+}
+test('profile history switches to overall counts and updates totals after editing and cancelling', async () => {
+  await choose('101', '有用'); await choose('102', '高质'); await choose('201', '谣言'); await choose('301', '没用');
+  await page.goto('https://x.com/alice'); await page.locator('xtag-profile button').click();
+  const dialog = page.locator('xtag-overlay dialog');
+  await expect(dialog.locator('.scope-total')).toHaveText('@alice共标记 2 条帖子');
+  await expect(dialog.locator('.stat[data-tag="谣言"] strong')).toHaveText('0');
+  await dialog.getByRole('button', { name: '全部博主', exact: true }).click();
+  await expect(dialog.getByRole('heading', { name: '全部博主的标签记录', exact: true })).toBeVisible();
+  await expect(dialog.locator('.scope-total')).toHaveText('全部博主共标记 4 条帖子');
+  await expect(dialog.locator('.record')).toHaveCount(4);
+  for (const tag of TAGS) await expect(dialog.locator(`.stat[data-tag="${tag}"] strong`)).toHaveText('1');
+  await dialog.getByRole('combobox', { name: '按标签筛选', exact: true }).selectOption('谣言');
+  await expect(dialog.locator('.record')).toHaveCount(1);
+  await dialog.getByRole('combobox', { name: '修改帖子 201 的标签' }).selectOption('有用');
+  await expect(dialog.locator('.stat[data-tag="有用"] strong')).toHaveText('2');
+  await expect(dialog.locator('.stat[data-tag="谣言"] strong')).toHaveText('0');
+  await expect(dialog.locator('.scope-total')).toContainText('4 条帖子');
+  await dialog.getByRole('combobox', { name: '按标签筛选', exact: true }).selectOption('');
+  await dialog.locator('.record').filter({ hasText: '实用笔记 201' }).getByRole('button', { name: '取消标记' }).click();
+  await expect(dialog.locator('.scope-total')).toContainText('3 条帖子');
+  await dialog.getByRole('button', { name: '当前博主 @alice', exact: true }).click();
+  await expect(dialog.locator('.record')).toHaveCount(2);
+  await expect(dialog.locator('.scope-total')).toHaveText('@alice共标记 2 条帖子');
+});
+test('each category exports across authors independently of list filters and full backup remains complete', async () => {
+  await seedRecords(exportRecords);
+  await expect(page.locator('.scope-total')).toHaveText('全部博主共标记 8 条帖子');
+  await page.getByRole('combobox', { name: '按标签筛选', exact: true }).selectOption('谣言');
+  await page.getByRole('searchbox').fill('bob'); await expect(page.locator('.record')).toHaveCount(1);
+  for (const tag of TAGS) {
+    await page.getByRole('combobox', { name: '导出标签', exact: true }).selectOption(tag);
+    await expect(page.locator('.export-preview')).toHaveText(`导出范围：全部博主 · ${tag} · 2 条记录`);
+    const file = await downloadRecords(page.getByRole('button', { name: '导出所选 JSON', exact: true }));
+    expect(file.filename).toContain(`all-authors-${tag}`);
+    expect(file.records).toEqual(exportRecords.filter(m => m.tag === tag));
+  }
+  await page.getByRole('combobox', { name: '导出标签', exact: true }).selectOption('');
+  expect((await downloadRecords(page.getByRole('button', { name: '导出所选 JSON', exact: true }))).records).toEqual(exportRecords);
+  await page.getByRole('combobox', { name: '导出标签', exact: true }).selectOption('没用');
+  const complete = await downloadRecords(page.getByRole('button', { name: '导出全部 JSON', exact: true }));
+  expect(complete.records).toEqual(exportRecords); expect(complete.filename).toMatch(/^xtag-backup-/);
+  await page.reload(); await expect(page.locator('.record')).toHaveCount(8);
+});
+test('profile export follows the selected author scope and partial files can be imported', async () => {
+  await seedRecords(exportRecords); await page.goto('https://x.com/alice'); await page.locator('xtag-profile button').click();
+  const dialog = page.locator('xtag-overlay dialog');
+  await dialog.getByRole('combobox', { name: '导出标签', exact: true }).selectOption('有用');
+  await expect(dialog.locator('.export-preview')).toHaveText('导出范围：@alice · 有用 · 1 条记录');
+  const partial = await downloadRecords(dialog.getByRole('button', { name: '导出所选 JSON', exact: true }));
+  expect(partial.filename).toContain('alice-有用'); expect(partial.records).toEqual([exportRecords[0]]);
+  expect((await downloadRecords(dialog.getByRole('button', { name: '导出全部 JSON', exact: true }))).records).toEqual(exportRecords);
+  await dialog.getByRole('button', { name: '全部博主', exact: true }).click();
+  await expect(dialog.locator('.export-preview')).toHaveText('导出范围：全部博主 · 有用 · 2 条记录');
+  expect((await downloadRecords(dialog.getByRole('button', { name: '导出所选 JSON', exact: true }))).records).toEqual(exportRecords.filter(m => m.tag === '有用'));
+  await dialog.getByRole('button', { name: '当前博主 @alice', exact: true }).click();
+  await dialog.getByRole('combobox', { name: '导出标签', exact: true }).selectOption('');
+  expect((await downloadRecords(dialog.getByRole('button', { name: '导出所选 JSON', exact: true }))).records).toEqual(exportRecords.filter(m => m.authorHandle === 'alice'));
+  await page.goto(`chrome-extension://${extensionId}/records.html`);
+  await page.getByLabel('选择 JSON 备份').setInputFiles({ name: partial.filename, mimeType: 'application/json', buffer: Buffer.from(JSON.stringify({ schemaVersion: 1, records: partial.records })) });
+  await expect(page.getByRole('status')).toContainText('新增 0 条'); await expect(page.locator('.record')).toHaveCount(8);
+});
+test('category export includes records beyond pagination and permits a valid empty category file', async () => {
+  const records = Array.from({ length: 70 }, (_, i) => ({ ...exportRecords[0]!, postId: String(700 + i), postUrl: `https://x.com/alice/status/${700 + i}` }));
+  await seedRecords(records); await expect(page.locator('.record')).toHaveCount(50);
+  await page.getByRole('searchbox').fill('does-not-exist'); await expect(page.locator('.record')).toHaveCount(0);
+  await expect(page.locator('.empty')).toHaveText('没有符合筛选条件的记录，请调整标签或搜索。');
+  await page.getByRole('combobox', { name: '导出标签', exact: true }).selectOption('有用');
+  const exported = await downloadRecords(page.getByRole('button', { name: '导出所选 JSON', exact: true }));
+  expect(exported.records).toEqual(records);
+  await page.getByRole('combobox', { name: '导出标签', exact: true }).selectOption('高质');
+  await expect(page.locator('.export-preview')).toContainText('0 条记录');
+  expect((await downloadRecords(page.getByRole('button', { name: '导出所选 JSON', exact: true }))).records).toEqual([]);
+  await page.getByRole('searchbox').clear(); await expect(page.locator('.record')).toHaveCount(50);
+  await expect(page.locator('.scope-total')).toContainText('70 条帖子');
+});
+for (const size of [{ width: 390, height: 844, scheme: 'dark' }, { width: 980, height: 800, scheme: 'light' }] as const) {
+  test(`overall scope and category export fit ${size.width}px ${size.scheme} history panel`, async () => {
+    await seedRecords(exportRecords); await page.setViewportSize(size); await page.emulateMedia({ colorScheme: size.scheme });
+    await page.goto('https://x.com/alice'); await page.locator('xtag-profile button').click();
+    const dialog = page.locator('xtag-overlay dialog');
+    await dialog.getByRole('button', { name: '全部博主', exact: true }).click();
+    await expect(dialog.locator('.scope-total')).toContainText('8 条帖子');
+    expect(await dialog.evaluate(el => el.scrollWidth > el.clientWidth)).toBe(false);
+    await dialog.screenshot({ path: `test-results/overall-history-${size.width}.png` });
+    await dialog.getByRole('combobox', { name: '导出标签', exact: true }).selectOption('没用');
+    await dialog.locator('.export-preview').scrollIntoViewIfNeeded();
+    await expect(dialog.locator('.export-preview')).toContainText('没用 · 2 条记录');
+    expect(await dialog.evaluate(el => el.scrollWidth > el.clientWidth)).toBe(false);
+    await dialog.locator('section.backup').first().screenshot({ path: `test-results/category-export-${size.width}.png` });
+  });
+}

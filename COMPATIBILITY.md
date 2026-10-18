@@ -2,6 +2,8 @@
 
 状态日期：2026-10-18。构建成功、桌面尺寸模拟和真机验证是不同的状态。
 
+0.1.5 的总体统计、当前 / 全部博主切换及按标签 JSON 导出使用共享 React 和数据逻辑，Chrome / Firefox / Safari 源构建均已更新。Windows Chromium 的 23 项 fixture / 扩展测试通过，含新功能、导出文件内容和 390px / 980px 布局；其他引擎、真实 X 和真机尚未逐一复测。Safari 开发包仍没有 Developer ID 签名与公证。
+
 | 平台 | 可交付内容 | 验证状态 |
 | --- | --- | --- |
 | Arc | 0.1.2 修复包含在 Chrome MV3 目录 / ZIP 中 | 用户报告修复后真实 X 出现按钮及四项菜单；未由本项目独立复核完整流程 |
@@ -13,7 +15,7 @@
 | Android 支持 WebExtension 的 Chromium | Chrome MV3 构建候选 | 未确认任何第三方浏览器支持；必须逐一安装验收 |
 | Android 官方 Chrome | 无普通扩展安装产物 | 不能默认支持普通 Chrome Extension；Desktop Site 不改变这一点 |
 | Android Desktop Site | 980×800 布局 fixture 场景 | 仅桌面浏览器视口模拟；未做 Android 真机测试 |
-| macOS Safari | 0.1.4 UTF-8 源包、Xcode 工程、未签名 Mac 开发包；签名公证流程待凭据 | 用户报告 0.1.3 手修版真实 X 保存 / 刷新 / 历史 / 取消通过；本项目未独立复核 Safari，0.1.4 popup 待手动复测；无 Developer ID 正式产物 |
+| macOS Safari | 0.1.5 UTF-8 源包、Xcode 工程、未签名 Mac 开发包；签名公证流程待凭据 | 用户报告 0.1.3 手修版真实 X 保存 / 刷新 / 历史 / 取消通过；本项目未独立复核 Safari，0.1.4 popup 待手动复测；无 Developer ID 正式产物 |
 | iPhone / iPad Safari | 同一源构建供 Xcode 转换 | 未生成可安装 App，无设备测试，无签名 |
 
 ## Firefox 桌面

@@ -25,6 +25,12 @@ export function filterMarks(marks: Mark[], options: { author?: Author; tag?: str
       `${mark.authorHandle} ${mark.authorDisplayName} ${mark.postTextSnippet} ${mark.postId}`.toLowerCase().includes(search)))
     .sort((a, b) => (options.ascending ? 1 : -1) * (a.updatedAt.localeCompare(b.updatedAt) || a.postId.localeCompare(b.postId)));
 }
+export function createBackup(marks: Mark[], options: { author?: Author; tag?: Tag } = {}) {
+  // Exports have an explicit scope. Search, sort and display pagination do not limit them.
+  const records = marks.filter(mark => (!options.author || sameAuthor(mark, options.author)) &&
+    (!options.tag || mark.tag === options.tag));
+  return { schemaVersion: 1 as const, exportedAt: new Date().toISOString(), records };
+}
 export function validatePost(value: unknown): Post {
   if (!value || typeof value !== 'object') throw new Error('帖子数据格式错误');
   const p = value as Record<string, unknown>;

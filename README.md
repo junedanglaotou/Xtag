@@ -1,8 +1,10 @@
 # XTag — X 帖子私人标签
 
-一个可本地加载的 WebExtension MVP。为每条 X 帖子独立标记「有用 / 谣言 / 没用 / 高质」，按博主查看历史。数据保存在扩展自己的 IndexedDB 中；无上传、无评分、无账号。
+一个可本地加载的 WebExtension MVP。为每条 X 帖子独立标记「有用 / 谣言 / 没用 / 高质」，查看单个博主或全部博主的统计、历史，并按标签导出。数据保存在扩展自己的 IndexedDB 中；无上传、无评分、无账号。
 
 GitHub：<https://github.com/junedanglaotou/Xtag>
+
+0.1.5 新增「当前博主 / 全部博主」范围切换、已标记帖子总数和分类导出。在主页记录面板上方切到「全部博主」，即可查看当前浏览器中所有已标记帖子的总数、四类次数及历史。下方「分类导出」可选全部标签、有用、谣言、没用、高质，导出前显示范围与条数；JSON 包含原帖链接、摘要、作者及时间，可重新导入。导出按当前博主范围和导出标签选择，搜索、列表标签筛选和分页仅影响显示。「导出全部 JSON」继续始终备份全部博主、全部标签。本次不更改数据库名称、版本或扩展身份。
 
 0.1.4 修复 Safari MV2 后台编码：显式 UTF-8 后台 HTML 与 ASCII 安全 JavaScript，避免中文标签及错误提示变乱码。工具栏历史入口改为原生链接。用户已报告 0.1.3 本机手修后 Safari 标签保存、刷新保留、主页历史及取消通过；本项目对 0.1.4 的测试范围见 TEST_REPORT.md。你希望的 GitHub 长期安装版将采用 Developer ID 签名与 Apple 公证，流程见 [SAFARI_DEVELOPER_ID.md](SAFARI_DEVELOPER_ID.md)；账号尚未开通，当前没有签名公证产物。
 
@@ -12,13 +14,13 @@ GitHub：<https://github.com/junedanglaotou/Xtag>
 
 0.1.2 已修复所有浏览器共用的帖子识别错误：真实 X 的作者 / 时间链接含 `role="link"`，旧版会误判为嵌套卡片并跳过。现在只排除非 `<a>` 的 link 容器，同时保留 quoteTweet / card.wrapper 规则。请使用 0.1.2 或更新版本，并在更新扩展后刷新 X。用户已报告 Arc 的真实 X 按钮和四项菜单正常；这不等于其他浏览器或持久化等全流程已在真实 X 验证。
 
-构建下载：[GitHub Actions](https://github.com/junedanglaotou/Xtag/actions) 中打开成功的 `XTag checks` 运行，在 Artifacts 下载 `xtag-0.1.4`；其中包含 Chrome / Edge、Firefox、Safari 转换源和完整源码包。GitHub 下载 Actions artifact 可能要求登录。本地现成产物在 `dist/`。
+构建下载：[GitHub Actions](https://github.com/junedanglaotou/Xtag/actions) 中打开成功的 `XTag checks` 运行，在 Artifacts 下载 `xtag-0.1.5`；其中包含 Chrome / Edge、Firefox、Safari 转换源和完整源码包。GitHub 下载 Actions artifact 可能要求登录。本地现成产物在 `dist/`。
 
 > 本版本浏览器测试使用本地 X DOM fixtures。没有登录真实 X，不能将测试结果理解为真实 X 网站已验证。Safari 源构建不等于已签名可安装的 Safari App。详见 [测试报告](TEST_REPORT.md) 和 [兼容性](COMPATIBILITY.md)。
 
 ## 立即安装 Chrome / Edge
 
-1. 下载 `dist/xtag-0.1.4-chrome-edge.zip` 并解压到固定目录。也可以直接使用本项目 `.output/chrome-mv3`。
+1. 下载 `dist/xtag-0.1.5-chrome-edge.zip` 并解压到固定目录。也可以直接使用本项目 `.output/chrome-mv3`。
 2. Chrome 打开 `chrome://extensions`；Edge 打开 `edge://extensions`。
 3. 打开「开发者模式」，点「加载已解压的扩展」，选择**直接包含 manifest.json 的目录**。不要选择 ZIP 或项目根目录。
 4. 打开或刷新 `https://x.com`，使用浏览器扩展站点权限设置允许在 X 上运行。
@@ -30,19 +32,20 @@ GitHub：<https://github.com/junedanglaotou/Xtag>
 
 - 菜单的次数是该博主**已标记的全部有效帖子**数量。重复选择当前标签会取消；换标签不会重复计数。
 - 桌面按钮在作者信息附近；≤600px 尝试放在头像下方。菜单进入浏览器顶层，不受帖子 overflow 裁剪。
-- 博主主页姓名区出现「标签记录」和四类次数；点击查看该博主历史。
+- 博主主页姓名区出现「标签记录」和四类次数；点击默认查看该博主历史。在面板上方「查看范围」中选择「全部博主」可看所有已标记帖子、总数与四类次数；选择「当前博主」可切回。
 - 点击浏览器工具栏 XTag →「打开标签记录」可查看全部博主，搜索摘要 / handle / 帖子 ID，按分类筛选，按最后标记时间排序，修改和取消标签。
 - 「查看原帖」在新页签打开原始 status 链接。记录只保存文字摘要，不保存媒体。
-- 「导出全部 JSON」备份所有博主数据。「导入 JSON」仅补充本机缺失帖子；已有本机标记保留。导入前整体校验，事务内遇到 ID 冲突整体回滚。
+- 「分类导出」选择全部标签或单个标签，再点「导出所选 JSON」。可导出当前博主，或切换「全部博主」后导出所有人的某一类；文件名含范围、标签与日期。没有记录的分类可导出有效空 JSON。
+- 「完整备份与恢复」中的「导出全部 JSON」始终备份所有博主数据。「导入 JSON」可读取完整或分类导出文件，仅补充本机缺失帖子，已有本机标记保留。导入前整体校验，事务内遇到 ID 冲突整体回滚。
 - 没有百分比、信誉分或所谓造谣率。所有标签都只代表个人判断。
 
 ## Firefox、Android 与 Safari
 
-Firefox 桌面临时测试：解压 `xtag-0.1.4-firefox-unsigned.xpi`（ZIP 格式），打开 `about:debugging#/runtime/this-firefox`，点「临时载入附加组件」并选择 manifest.json。临时安装在重启 Firefox 后失效；正常长期安装需要 Mozilla 签名，不能把未签名 XPI 当作正式安装包。
+Firefox 桌面临时测试：解压 `xtag-0.1.5-firefox-unsigned.xpi`（ZIP 格式），打开 `about:debugging#/runtime/this-firefox`，点「临时载入附加组件」并选择 manifest.json。临时安装在重启 Firefox 后失效；正常长期安装需要 Mozilla 签名，不能把未签名 XPI 当作正式安装包。
 
 Android Firefox 正常发行安装需要签名版本，当前没有签名。开发者可以使用 `web-ext run --target=firefox-android` 配合 ADB 和 USB 调试在自己的测试设备临时安装；具体步骤见 [COMPATIBILITY.md](COMPATIBILITY.md)。
 
-Safari：交付 `.output/safari-mv2` 和 `xtag-0.1.4-safari-webextension.zip`，仅供 macOS 上 Xcode 转换。不能直接在 iPhone 点 ZIP 安装。macOS 下运行 `sh scripts/convert-safari.sh` 后，在 Xcode 完成团队选择、签名与目标设备运行。见兼容性文档。
+Safari：交付 `.output/safari-mv2` 和 `xtag-0.1.5-safari-webextension.zip`，仅供 macOS 上 Xcode 转换。不能直接在 iPhone 点 ZIP 安装。macOS 下运行 `sh scripts/convert-safari.sh` 后，在 Xcode 完成团队选择、签名与目标设备运行。见兼容性文档。
 
 Desktop Site 只是显示模式。官方 Android Chrome 不应按普通桌面 Chrome 扩展方式安装。第三方 Chromium 浏览器需逐个验证其扩展安装能力。
 

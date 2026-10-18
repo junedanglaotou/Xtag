@@ -1,7 +1,7 @@
 import { afterEach, describe, expect, it } from 'vitest';
 import { openDB } from 'idb';
 import { IndexedDbRepository } from '../../src/core/repository';
-import { TAGS, countsFor, filterMarks, isTag, parseBackup, sameAuthor, type Post } from '../../src/core/model';
+import { TAGS, countsFor, createBackup, filterMarks, isTag, parseBackup, sameAuthor, type Post } from '../../src/core/model';
 const post = (id = '101', handle = 'alice'): Post => ({ postId: id, authorHandle: handle, authorDisplayName: handle, postUrl: `https://x.com/${handle}/status/${id}`, postTextSnippet: `笔记 ${id}` });
 const repositories: IndexedDbRepository[] = [];
 function repo() { const r = new IndexedDbRepository(crypto.randomUUID()); repositories.push(r); return r; }
@@ -106,5 +106,35 @@ describe('validation and identity', () => {
     const r = repo(); await r.set(post(), '有用'); const m = (await r.list())[0]!;
     expect(() => parseBackup({ schemaVersion: 1, records: [m, m] })).toThrow();
     expect(() => parseBackup({ schemaVersion: 1, records: [{ ...m, createdAt: '2099-01-01' }] })).toThrow();
+  });
+});
+describe('scoped category exports', () => {
+  it.each(TAGS)('exports all authors in %s with metadata preserved and can restore the file', async tag => {
+    const r = repo();
+    for (const [i, t] of TAGS.entries()) {
+      await r.set(post(String(500 + i * 2), 'alice'), t);
+      await r.set(post(String(501 + i * 2), 'bob'), t);
+    }
+    const original = await r.list();
+    const backup = createBackup(original, { tag });
+    expect(backup.records).toEqual(original.filter(m => m.tag === tag));
+    expect(backup.records).toHaveLength(2);
+    expect(parseBackup(JSON.parse(JSON.stringify(backup)))).toEqual(backup.records);
+    const restored = repo(); expect(await restored.import(parseBackup(backup))).toBe(2);
+    expect(createBackup(original).records).toEqual(original);
+    expect(await r.list()).toEqual(original);
+  });
+  it('combines author and tag without including conflicting IDs or handle-only records', () => {
+    const time = '2026-10-01T00:00:00.000Z';
+    const mark = { ...post(), authorUserId: '1', tag: '有用' as const, createdAt: time, updatedAt: time };
+    const marks = [mark, { ...mark, ...post('102', 'renamed') }, { ...mark, ...post('103'), authorUserId: '2' }, { ...mark, ...post('104'), authorUserId: undefined }, { ...mark, ...post('105'), tag: '谣言' as const }];
+    expect(createBackup(marks, { author: mark, tag: '有用' }).records.map(m => m.postId)).toEqual(['101', '102']);
+    expect(createBackup(marks, { author: mark }).records.map(m => m.postId)).toEqual(['101', '102', '105']);
+  });
+  it('creates valid empty exports without inventing records or affecting the source', async () => {
+    const r = repo(); await r.set(post(), '有用'); const original = await r.list();
+    const empty = createBackup(original, { tag: '高质' });
+    expect(parseBackup(empty)).toEqual([]); expect(parseBackup(createBackup([]))).toEqual([]);
+    expect(await r.list()).toEqual(original);
   });
 });
