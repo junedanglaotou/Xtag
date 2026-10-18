@@ -1,6 +1,8 @@
 import type { Post } from '../core/model';
 export const ARTICLE = 'article[data-testid="tweet"]';
-const EXCLUDED = '[data-testid="quoteTweet"], [data-testid="card.wrapper"], [role="link"]';
+// Real X gives ordinary author and timestamp anchors role="link" too. Only
+// non-anchor link containers are a nesting boundary; quote/card rules still apply.
+const EXCLUDED = '[data-testid="quoteTweet"], [data-testid="card.wrapper"], [role="link"]:not(a)';
 export function ownedBy(article: HTMLElement, element: Element) {
   return element.closest(ARTICLE) === article && !element.closest(EXCLUDED);
 }

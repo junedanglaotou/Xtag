@@ -1,5 +1,11 @@
 # 已知限制、失败和待完成事项
 
+## 0.1.2 已确认并修复的真实页面问题
+
+用户在 Arc 真实 X 上发现：普通时间 `<a role="link">` 被旧版 `EXCLUDED` 排除，所有帖子识别失败。补齐 fixture 的真实属性后，原代码有 7 项单元测试失败；修为 `[role="link"]:not(a)` 后 29 项单元和 11 项浏览器 fixture 测试通过。作者 / 头像 / 时间链接的浏览器 fixture 均已补上 role，quoteTweet、card.wrapper、非 anchor 的 link 容器和嵌套 article 仍排除。
+
+这是此前测试 fixture 不充分造成的漏测，旧版“fixture 通过”不等于真实 X 可用。用户已报告 Arc 按钮和菜单恢复；其他真实浏览器的完整流程仍待验证。Safari 未完成安装是另一个独立问题。
+
 ## 使用边界
 
 - 尚未在登录后的真实 x.com 上测试。For You / Following / 详情 / 搜索 / 主页使用相同 article 识别器；它们的真实 DOM 变体没有逐一验收。

@@ -38,8 +38,10 @@ jobs:
           test -d "$app/Contents/PlugIns"
           manifest=$(find "$app/Contents/PlugIns" -name manifest.json -print -quit)
           test -n "$manifest"
-          ditto -c -k --sequesterRsrc --keepParent "$app" dist/xtag-0.1.1-macos-unsigned-app.zip
-          ditto -c -k --sequesterRsrc --keepParent safari-project dist/xtag-0.1.1-safari-xcode-project.zip
+          cmp "$manifest" .output/safari-mv2/manifest.json
+          cmp "$(dirname "$manifest")/content-scripts/content.js" .output/safari-mv2/content-scripts/content.js
+          ditto -c -k --sequesterRsrc --keepParent "$app" dist/xtag-0.1.2-macos-unsigned-app.zip
+          ditto -c -k --sequesterRsrc --keepParent safari-project dist/xtag-0.1.2-safari-xcode-project.zip
           printf '%s\n' \
             'Developer test build only: no Apple developer signature or notarization.' \
             'Compilation does not verify Safari activation, permissions or real x.com behavior.' \

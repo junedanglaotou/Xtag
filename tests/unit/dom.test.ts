@@ -1,8 +1,18 @@
 import { describe, expect, it } from 'vitest';
 import { recognizePost, profileHandle } from '../../src/dom/recognize';
 function article(html: string) { document.body.innerHTML = `<article data-testid="tweet">${html}</article>`; return document.querySelector('article')!; }
-const link = (handle: string, id: string) => `<a href="/${handle}/status/${id}"><time>1h</time></a>`;
+const link = (handle: string, id: string) => `<a role="link" href="/${handle}/status/${id}"><time>1h</time></a>`;
 describe('outer post recognition', () => {
+  it('recognizes ordinary timestamp and author anchors with role=link from real X', () => {
+    const el = article(`<div data-testid="User-Name"><a role="link" href="/alice"><span>Alice</span></a></div>${link('alice', '101')}<div data-testid="tweetText">Real X anchor roles</div>`);
+    expect(recognizePost(el)).toMatchObject({ postId: '101', authorHandle: 'alice', authorDisplayName: 'Alice', postTextSnippet: 'Real X anchor roles' });
+  });
+  it.each(['quoteTweet', 'card.wrapper'])('still excludes nested status anchors inside %s', testId => {
+    const quoted = `<div data-testid="${testId}">${link('quoted', '999')}<div data-testid="tweetText">Quoted text</div></div>`;
+    expect(recognizePost(article(`${quoted}${link('alice', '101')}<div data-testid="tweetText">Outer text</div>`)))
+      .toMatchObject({ postId: '101', authorHandle: 'alice', postTextSnippet: 'Outer text' });
+    expect(recognizePost(article(quoted))).toBeNull();
+  });
   it('uses outer timestamp even when a quote appears first', () => {
     const el = article(`<div role="link">${link('quoted', '99')}</div><div data-testid="User-Name"><a><span>Alice</span></a></div>${link('Alice', '101')}<div data-testid="tweetText">Outer</div>`);
     expect(recognizePost(el)).toMatchObject({ postId: '101', authorHandle: 'alice', postTextSnippet: 'Outer', authorDisplayName: 'Alice' });

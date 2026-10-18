@@ -1,3 +1,26 @@
+# XTag 0.1.2 测试报告
+
+日期：2026-10-18。
+
+## 本次识别修复及证据
+
+真实 X 的普通作者与时间链接含 role="link"。此前 EXCLUDED 使用 [role="link"]，closest() 因匹配正常 anchor 而返回排除结果。该逻辑被所有浏览器共用，故不是 Arc 专属错误。
+
+- 先补齐单元 fixture 的 role 属性：修复前复现 7 项失败、22 项通过。
+- 改为 [role="link"]:not(a)，保留 quoteTweet / card.wrapper 排除规则。
+- 单元回归：29/29 通过（3 个文件，2.17s），包含普通 role anchor、quoteTweet、card.wrapper、非 anchor 引用容器、嵌套 article、节点复用。
+- Chromium 实际扩展回归：11/11 通过（23.3s）；所有普通帖的头像 / 作者 / 时间 fixture 都带 role="link"。使用真实扩展的后台 / IndexedDB / 内容脚本 / React，但网络内容仍是 DOM fixtures。
+- TypeScript 与 Chrome MV3 / Firefox MV2 / Safari MV2 构建通过。
+- 已新增 Mac 打包校验：App 中的 manifest 和 content.js 必须与本次 Safari 源构建逐字节一致，防止打包旧代码；本次远程运行结果见 GitHub Actions。
+
+## 真实页面验证的归属
+
+用户报告：在 Arc 真实 X 修改排除条件后，标签按钮和四项菜单正常出现。此为用户实测反馈，本项目未独立复核该会话，不能据此宣称保存 / 重启 / 全部浏览器的真实 X 流程通过。
+
+用户提供的 Safari 截图说明此前尚未完成安装；这与共享 DOM 错误分开记录。Firefox / Edge / Safari 等目标尚未逐一做真实 X 验证。官方 Android Chrome 的扩展安装限制也不会被本次 DOM 修复改变。
+
+## 历史测试记录（0.1.0—0.1.1）
+
 # XTag 测试报告
 
 日期：2026-10-18。环境：Windows、Node.js 24.12.0、npm 11.6.2。

@@ -4,6 +4,7 @@
 
 | 平台 | 可交付内容 | 验证状态 |
 | --- | --- | --- |
+| Arc | 0.1.2 修复包含在 Chrome MV3 目录 / ZIP 中 | 用户报告修复后真实 X 出现按钮及四项菜单；未由本项目独立复核完整流程 |
 | Windows Chrome | Chrome MV3 目录和 ZIP，可开发者模式加载 | Windows Chrome for Testing 156 + 真实扩展 + DOM fixtures；真实 X 未验证 |
 | Windows Edge | 同一个 Chrome MV3 目录 | 已构建，未在 Edge 加载运行 |
 | macOS Chrome | 同一个 Chrome MV3 目录 | 未在 macOS 运行 |
@@ -43,6 +44,8 @@
 逐个验证：记录浏览器名称 / 版本 / Android 版本 → 确认它提供普通 WebExtension 安装入口与 MV3 支持 → 安装 Chrome 构建 → 给 x.com 授权 → 先在移动模式跑 README 验收 → 再请求 Desktop Site 重复。任一阶段失败，记录失败原因而非跳过。
 
 Desktop Site 的网页 viewport 可能约 980px，扩展会按实际布局宽度使用桌面放置策略。视口模拟不模拟 Android 扩展进程、软键盘、触控硬件或系统安装限制。
+
+0.1.2 的 `[role="link"]:not(a)` 识别修复适用于所有共享内容脚本的目标。Chrome / Edge / Arc / Firefox / Safari 在扩展已正常加载且遇到同样 DOM 时，旧版都有误跳过风险。此结论来自共享代码和回归复现，不是逐浏览器真实 X 实测结论。用户提供的 Safari 截图说明当时尚未完成安装，不能记为已在 Safari 验证该运行问题。
 
 ## Safari macOS / iOS
 
