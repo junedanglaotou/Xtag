@@ -1,4 +1,4 @@
-export const TAGS = ['有用', '谣言', '未知', '高质'] as const;
+export const TAGS = ['有用', '谣言', '没用', '高质'] as const;
 export type Tag = typeof TAGS[number];
 export interface Author { authorUserId?: string; authorHandle: string; authorDisplayName: string }
 export interface Post extends Author { postId: string; postUrl: string; postTextSnippet: string }
@@ -6,13 +6,15 @@ export interface Mark extends Post { tag: Tag; createdAt: string; updatedAt: str
 export type Counts = Record<Tag, number>;
 export const normalizeHandle = (handle: string) => handle.replace(/^@/, '').toLowerCase();
 export const isTag = (value: unknown): value is Tag => TAGS.includes(value as Tag);
+// Retain compatibility with backups made before the label rename.
+export const LEGACY_UNKNOWN_TAG = '未知';
 export function sameAuthor(a: Author, b: Author): boolean {
   // Never join two known, different IDs or silently join a handle-only identity to a known ID.
   if (a.authorUserId || b.authorUserId) return !!a.authorUserId && a.authorUserId === b.authorUserId;
   return normalizeHandle(a.authorHandle) === normalizeHandle(b.authorHandle);
 }
 export function countsFor(marks: Mark[], author?: Author): Counts {
-  const counts: Counts = { 有用: 0, 谣言: 0, 未知: 0, 高质: 0 };
+  const counts: Counts = { 有用: 0, 谣言: 0, 没用: 0, 高质: 0 };
   for (const mark of marks) if (!author || sameAuthor(mark, author)) counts[mark.tag]++;
   return counts;
 }
@@ -45,10 +47,11 @@ export function parseBackup(value: unknown): Mark[] {
   return backup.records.map(value => {
     const post = validatePost(value);
     const m = value as Record<string, unknown>;
-    if (!isTag(m.tag) || typeof m.createdAt !== 'string' || typeof m.updatedAt !== 'string' ||
+    const tag = m.tag === LEGACY_UNKNOWN_TAG ? '没用' : m.tag;
+    if (!isTag(tag) || typeof m.createdAt !== 'string' || typeof m.updatedAt !== 'string' ||
         !Number.isFinite(Date.parse(m.createdAt)) || !Number.isFinite(Date.parse(m.updatedAt)) ||
         Date.parse(m.createdAt) > Date.parse(m.updatedAt) || seen.has(post.postId)) throw new Error('备份包含无效标签、时间或重复帖子');
     seen.add(post.postId);
-    return { ...post, tag: m.tag, createdAt: new Date(m.createdAt).toISOString(), updatedAt: new Date(m.updatedAt).toISOString() };
+    return { ...post, tag, createdAt: new Date(m.createdAt).toISOString(), updatedAt: new Date(m.updatedAt).toISOString() };
   });
 }

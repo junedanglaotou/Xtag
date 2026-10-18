@@ -1,3 +1,4 @@
+@import './tag-highlights.css';
 :host { color-scheme: light dark; }
 * { box-sizing: border-box; }
 .xtag-app { --bg:#f6f7f2; --panel:#fff; --ink:#192922; --muted:#64756c; --line:#dfe5dd; --accent:#276a49; color:var(--ink); background:var(--bg); font:14px/1.6 system-ui,-apple-system,BlinkMacSystemFont,"Segoe UI",sans-serif; }
@@ -21,6 +22,7 @@
 .xtag-app .intro { margin:12px 0 24px; color:var(--muted); }
 .xtag-app .stats { display:grid; grid-template-columns:repeat(4,minmax(0,1fr)); gap:10px; margin:20px 0; }
 .xtag-app .stat { padding:14px; border:1px solid var(--line); background:var(--panel); border-radius:12px; text-align:left; }
+.xtag-app .stat[data-tag],.xtag-app select[data-tag] { background:var(--xtag-highlight,var(--panel)); }
 .xtag-app .stat strong { display:block; font-size:26px; font-weight:500; }
 .xtag-app .stat[aria-pressed=true] { border-color:var(--accent); box-shadow:inset 0 0 0 1px var(--accent); }
 .xtag-app .toolbar { display:flex; gap:10px; flex-wrap:wrap; margin:20px 0; }

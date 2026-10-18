@@ -1,3 +1,21 @@
+# XTag 0.1.3 测试报告
+
+日期：2026-10-18。Windows、Node.js 24.12.0、npm 11.6.2。
+
+## 本次标签改名及背景高亮
+
+- 四种标签：有用（青色）、谣言（红色）、没用（黄色）、高质（蓝色）。帖子按钮、菜单、主页汇总和历史记录共用配色，所有分类继承相同文字色，未标记帖子保持空白。
+- 原数据库升级到版本 2，将「未知」原子迁移为「没用」，保留记录 ID、作者、摘要及创建 / 更新时间。旧 schemaVersion 1 JSON 备份导入时也自动转换，不覆盖已有标记。
+- Vitest **32/32 通过**（3 个文件），包含旧数据库升级、重新打开、次数及取消操作、旧备份兼容。
+- Chromium 实际扩展 Playwright **14/14 通过**（31.4s）。新增浅色 / 深色背景与相同文字色校验，以及旧备份导入、筛选、导出、时间保留和取消标签流程。
+- 新测试首轮为 12 通过 / 2 失败：视口自动滚动会关闭刚打开的菜单。现改为随仍可见的帖子定位菜单，帖子离开视口时关闭，并避免聚焦菜单触发滚动；完整回归通过。
+- TypeScript 与 Chrome MV3 / Firefox MV2 / Safari MV2 三种生产构建通过。
+- 截图：test-results/tag-highlights-light.png、tag-highlights-dark.png、history-highlights-light.png、history-highlights-dark.png，已目视检查标签颜色。
+
+本次浏览器测试加载真实生产扩展，但 x.com 内容使用本地 DOM fixtures；没有独立验证真实 X，也没有运行 Firefox / Safari 或手机真机。GitHub Actions 本次运行结果见仓库 Actions。
+
+## 历史测试记录（0.1.2）
+
 # XTag 0.1.2 测试报告
 
 日期：2026-10-18。

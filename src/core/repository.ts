@@ -1,5 +1,5 @@
 import { openDB, type DBSchema, type IDBPDatabase } from 'idb';
-import { isTag, validatePost, type Mark, type Post, type Tag } from './model';
+import { isTag, LEGACY_UNKNOWN_TAG, validatePost, type Mark, type Post, type Tag } from './model';
 
 export interface Repository {
   list(): Promise<Mark[]>;
@@ -12,7 +12,24 @@ interface Database extends DBSchema { marks: { key: string; value: Mark } }
 export class IndexedDbRepository implements Repository {
   private db: Promise<IDBPDatabase<Database>>;
   constructor(name = 'xtag-v1') {
-    this.db = openDB<Database>(name, 1, { upgrade(db) { db.createObjectStore('marks', { keyPath: 'postId' }); } });
+    this.db = openDB<Database>(name, 2, {
+      async upgrade(db, oldVersion, _newVersion, transaction) {
+        if (oldVersion < 1) db.createObjectStore('marks', { keyPath: 'postId' });
+        if (oldVersion < 2) {
+          try {
+            let cursor = await transaction.objectStore('marks').openCursor();
+            while (cursor) {
+              if ((cursor.value.tag as string) === LEGACY_UNKNOWN_TAG) {
+                // A label rename is not a new judgment: preserve IDs, metadata and timestamps.
+                await cursor.update({ ...cursor.value, tag: '没用' });
+              }
+              cursor = await cursor.continue();
+            }
+          } catch { transaction.abort(); }
+        }
+      },
+      blocking: () => { void this.close(); },
+    });
   }
   async list() { return (await this.db).getAll('marks'); }
   async set(input: Post, tag: Tag | null, toggle = false) {

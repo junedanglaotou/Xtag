@@ -1,5 +1,5 @@
 import { test, expect, type BrowserContext, type Page } from '@playwright/test';
-import { mkdtemp, rm } from 'node:fs/promises';
+import { mkdtemp, readFile, rm } from 'node:fs/promises';
 import { tmpdir } from 'node:os';
 import path from 'node:path';
 import { fixture, tweet } from './fixture';
@@ -77,7 +77,7 @@ test('profile summary, history filter/search/sort, original link and record edit
   await original.waitForLoadState(); expect(original.url()).toBe('https://x.com/alice/status/101'); await original.close();
   await dialog.getByRole('combobox', { name: '按标签筛选', exact: true }).selectOption('');
   await dialog.getByRole('searchbox').fill('102'); await expect(dialog.locator('.record')).toHaveCount(1);
-  await dialog.getByRole('combobox', { name: '修改帖子 102 的标签' }).selectOption('未知'); await expect(dialog.locator('.record-top')).toContainText('未知');
+  await dialog.getByRole('combobox', { name: '修改帖子 102 的标签' }).selectOption('没用'); await expect(dialog.locator('.record-top')).toContainText('没用');
   await dialog.getByRole('button', { name: '取消标记' }).click(); await expect(dialog.locator('.record')).toHaveCount(0);
   await dialog.getByRole('searchbox').clear(); await dialog.getByRole('combobox', { name: '按日期排序' }).selectOption('asc');
   await expect(dialog.locator('.record')).toHaveCount(1); await page.keyboard.press('Escape'); await expect(dialog).not.toBeVisible();
@@ -87,7 +87,7 @@ test('JSON backup export and validated merge import work in extension history', 
   await page.goto(`chrome-extension://${extensionId}/records.html`);
   const download = page.waitForEvent('download'); await page.getByRole('button', { name: '导出全部 JSON' }).click();
   const artifact = await download; expect(artifact.suggestedFilename()).toMatch(/^xtag-backup-.*\.json$/);
-  const backup = { schemaVersion: 1, records: [{ postId: '701', authorHandle: 'zoe', authorDisplayName: '<script>alert(1)</script>', postUrl: 'https://x.com/zoe/status/701', postTextSnippet: '<img src=x onerror=alert(1)>', tag: '未知', createdAt: '2026-10-01T00:00:00.000Z', updatedAt: '2026-10-01T00:00:00.000Z' }] };
+  const backup = { schemaVersion: 1, records: [{ postId: '701', authorHandle: 'zoe', authorDisplayName: '<script>alert(1)</script>', postUrl: 'https://x.com/zoe/status/701', postTextSnippet: '<img src=x onerror=alert(1)>', tag: '没用', createdAt: '2026-10-01T00:00:00.000Z', updatedAt: '2026-10-01T00:00:00.000Z' }] };
   await page.getByLabel('选择 JSON 备份').setInputFiles({ name: 'backup.json', mimeType: 'application/json', buffer: Buffer.from(JSON.stringify(backup)) });
   await expect(page.locator('.record')).toHaveCount(2); await expect(page.locator('.record img')).toHaveCount(0);
   await page.getByLabel('选择 JSON 备份').setInputFiles({ name: 'bad.json', mimeType: 'application/json', buffer: Buffer.from('{"schemaVersion":999,"records":[]}') });
@@ -100,7 +100,7 @@ for (const mode of [{ name: 'mobile narrow', width: 390, height: 844, dark: true
     await control('101').click(); const menuBox = await menu().boundingBox(); expect(menuBox!.x).toBeGreaterThanOrEqual(0); expect(menuBox!.x + menuBox!.width).toBeLessThanOrEqual(mode.width);
     const overflow = await page.evaluate(() => document.documentElement.scrollWidth > innerWidth); expect(overflow).toBe(false);
     await page.screenshot({ path: `test-results/${mode.name.replaceAll(' ', '-')}.png`, fullPage: true });
-    await menu().getByRole('menuitemradio', { name: '未知 0次' }).click(); await expect(control('101').locator('span')).toHaveText('未知');
+    await menu().getByRole('menuitemradio', { name: '没用 0次' }).click(); await expect(control('101').locator('span')).toHaveText('没用');
   });
 }
 test('SPA navigation and back/forward reinject profile without duplicates', async () => {
@@ -129,4 +129,59 @@ test('recycled post cannot receive a stale menu selection before the observer ru
   await expect(control('888').locator('span')).toHaveText('');
   await page.goto(`chrome-extension://${extensionId}/records.html`);
   await expect(page.locator('.record')).toHaveCount(0);
+});
+
+for (const scheme of ['light', 'dark'] as const) {
+  test(`label backgrounds are cyan, red, yellow and blue with equal text colors in ${scheme} mode`, async () => {
+    await page.emulateMedia({ colorScheme: scheme }); await page.reload();
+    const textColor = await control('101').evaluate(el => getComputedStyle(el).color);
+    const cases = [
+      { id: '101', tag: '有用', background: 'rgba(6, 182, 212, 0.24)' },
+      { id: '102', tag: '谣言', background: 'rgba(239, 68, 68, 0.24)' },
+      { id: '201', tag: '没用', background: 'rgba(250, 204, 21, 0.24)' },
+      { id: '301', tag: '高质', background: 'rgba(59, 130, 246, 0.24)' },
+    ];
+    for (const item of cases) {
+      await choose(item.id, item.tag);
+      await expect(control(item.id)).toHaveCSS('background-color', item.background);
+      await expect(control(item.id)).toHaveCSS('color', textColor);
+    }
+    await control('101').click();
+    const menuColor = await menu().getByRole('menuitemradio').first().evaluate(el => getComputedStyle(el).color);
+    for (const item of cases) {
+      const option = menu().getByRole('menuitemradio', { name: new RegExp(`^${item.tag}`) });
+      await expect(option).toHaveCSS('background-color', item.background);
+      await expect(option).toHaveCSS('color', menuColor);
+    }
+    await expect(menu().getByRole('menuitemradio', { name: /^未知/ })).toHaveCount(0);
+    await page.screenshot({ path: `test-results/tag-highlights-${scheme}.png`, fullPage: true });
+    await page.keyboard.press('Escape'); await page.goto('https://x.com/alice');
+    for (const item of cases) await expect(page.locator(`xtag-profile .tag-badge[data-tag="${item.tag}"]`)).toHaveCSS('background-color', item.background);
+    await page.locator('xtag-profile button').click();
+    const dialog = page.locator('xtag-overlay dialog'); await expect(dialog.locator('.record')).toHaveCount(2);
+    const statColor = await dialog.locator('.stat').first().evaluate(el => getComputedStyle(el).color);
+    for (const item of cases) {
+      await expect(dialog.locator(`.stat[data-tag="${item.tag}"]`)).toHaveCSS('background-color', item.background);
+      await expect(dialog.locator(`.stat[data-tag="${item.tag}"]`)).toHaveCSS('color', statColor);
+    }
+    await expect(dialog.locator('.record-top .tag-badge[data-tag="有用"]')).toHaveCSS('background-color', cases[0]!.background);
+    await page.screenshot({ path: `test-results/history-highlights-${scheme}.png`, fullPage: true });
+  });
+}
+
+test('old unknown backups display, filter, export and cancel as the yellow useless label', async () => {
+  await page.goto(`chrome-extension://${extensionId}/records.html`);
+  const record = { postId: '101', authorHandle: 'alice', authorDisplayName: 'Alice', postUrl: 'https://x.com/alice/status/101', postTextSnippet: 'An older personal note', tag: '未知', createdAt: '2026-10-01T00:00:00.000Z', updatedAt: '2026-10-02T00:00:00.000Z' };
+  await page.getByLabel('选择 JSON 备份').setInputFiles({ name: 'old-backup.json', mimeType: 'application/json', buffer: Buffer.from(JSON.stringify({ schemaVersion: 1, records: [record] })) });
+  await expect(page.locator('.record')).toHaveCount(1);
+  await page.getByRole('combobox', { name: '按标签筛选', exact: true }).selectOption('没用');
+  await expect(page.locator('.record-top .tag-badge')).toHaveText('没用');
+  await expect(page.locator('.record-top .tag-badge')).toHaveCSS('background-color', 'rgba(250, 204, 21, 0.24)');
+  const downloaded = page.waitForEvent('download'); await page.getByRole('button', { name: '导出全部 JSON' }).click();
+  const file = await downloaded; const exported = JSON.parse(await readFile((await file.path())!, 'utf8'));
+  expect(exported.records).toEqual([{ ...record, tag: '没用' }]);
+  await page.goto('https://x.com/home'); await expect(control('101').locator('span')).toHaveText('没用');
+  await control('101').click(); await menu().getByRole('menuitemradio', { name: '没用 1次' }).click();
+  await expect(control('101').locator('span')).toHaveText('');
+  await expect(control('101')).not.toHaveAttribute('data-tag', /.+/);
 });

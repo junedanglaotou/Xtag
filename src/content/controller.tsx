@@ -42,12 +42,22 @@ export function startXTag() {
       const mark = byId.get(binding.post.postId);
       const text = binding.button.querySelector('span')!;
       if (text.textContent !== (mark?.tag ?? '')) text.textContent = mark?.tag ?? '';
+      if (mark) binding.button.dataset.tag = mark.tag;
+      else binding.button.removeAttribute('data-tag');
       binding.button.setAttribute('aria-label', `私人标签：${mark?.tag ?? '未标记'}，帖子 ${binding.post.postId}`);
     }
     if (profile) {
       const counts = countsFor(records, { authorHandle: profile.handle, authorDisplayName: profile.handle });
-      const text = `标签记录 · ${TAGS.map(tag => `${tag} ${counts[tag]}`).join(' · ')}`;
-      if (profile.button.textContent !== text) profile.button.textContent = text;
+      const key = TAGS.map(tag => counts[tag]).join(',');
+      if (profile.button.dataset.counts !== key) {
+        const label = document.createElement('span'); label.textContent = '标签记录';
+        const tags = document.createElement('span'); tags.className = 'profile-tags';
+        for (const tag of TAGS) {
+          const badge = document.createElement('span'); badge.className = 'tag-badge'; badge.dataset.tag = tag;
+          badge.textContent = `${tag} ${counts[tag]}`; tags.append(badge);
+        }
+        profile.button.replaceChildren(label, tags); profile.button.dataset.counts = key;
+      }
     }
     if (active) renderMenu(active);
   }
@@ -89,7 +99,7 @@ export function startXTag() {
   function openMenu(binding: Binding) {
     if (active === binding) { hideMenu(true); return; }
     hideMenu(); active = binding; binding.button.setAttribute('aria-expanded', 'true'); renderMenu(binding);
-    menuSurface.show(); placeMenu(); menu.querySelector('button')?.focus();
+    menuSurface.show(); placeMenu(); menu.querySelector('button')?.focus({ preventScroll: true });
   }
   function closeModal() {
     if (modal.open) modal.close(); modalRoot?.unmount(); modalRoot = undefined; modal.replaceChildren();
@@ -166,14 +176,20 @@ export function startXTag() {
     }
   };
   const onLayout = () => { hideMenu(); schedule(); };
+  const onScroll = () => {
+    if (!active) return;
+    const rect = active.button.getBoundingClientRect();
+    if (rect.bottom <= 0 || rect.top >= innerHeight) hideMenu();
+    else placeMenu();
+  };
   document.addEventListener('pointerdown', onPointer, true); document.addEventListener('keydown', onKey, true);
-  window.addEventListener('scroll', onLayout, { capture: true, passive: true }); window.addEventListener('resize', onLayout); window.addEventListener('popstate', onLayout);
+  window.addEventListener('scroll', onScroll, { capture: true, passive: true }); window.addEventListener('resize', onLayout); window.addEventListener('popstate', onLayout);
   const off = subscribe(() => void load());
   scan(); void load();
   return () => {
     disposed = true; observer.disconnect(); off(); clearTimeout(timer); clearTimeout(toastTimer); hideMenu(); closeModal();
     for (const binding of bindings.values()) binding.host.remove(); bindings.clear(); profile?.host.remove(); overlayHost.remove();
     document.removeEventListener('pointerdown', onPointer, true); document.removeEventListener('keydown', onKey, true);
-    window.removeEventListener('scroll', onLayout, true); window.removeEventListener('resize', onLayout); window.removeEventListener('popstate', onLayout);
+    window.removeEventListener('scroll', onScroll, true); window.removeEventListener('resize', onLayout); window.removeEventListener('popstate', onLayout);
   };
 }
