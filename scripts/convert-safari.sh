@@ -11,6 +11,6 @@ else
 fi
 xcrun "$tool" .output/safari-mv2 \
   --project-location "${XTAG_SAFARI_PROJECT_DIR:-safari-project}" \
-  --app-name XTag --bundle-identifier com.xtag.private \
+  --app-name XTag --bundle-identifier "${XTAG_SAFARI_BUNDLE_ID:-com.xtag.private}" \
   --swift --copy-resources --no-open --no-prompt "$@"
 echo 'Xcode project generated. This is not yet a signed or notarized installable app.'

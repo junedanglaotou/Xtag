@@ -1,5 +1,11 @@
 # Safari 使用故障排查（0.1.2）
 
+## 0.1.4 中文标签无法保存：已合入构建修复
+
+用户在实际 Safari 0.1.3 临时扩展中报告：生成的后台 HTML 未声明编码，document.characterSet 为 windows-1252，中文标签校验和错误提示损坏。本机改显式 UTF-8 页面、manifest background.page、JS Unicode 转义后，保存 / 刷新 / 主页历史 / 取消通过。这是用户提供的实测结论。
+
+0.1.4 已将三项变更落实为 WXT 构建配置：MV2 自动带 background-utf8.html，Rolldown 输出 ASCII 安全 JS，产物检查阻止回归。新增 Chromium harness 执行实际 Safari 后台文件验证中文行为，但本项目未独立测试真实 Safari。工具栏入口改成原生链接，真实 Safari popup 人工点击仍待验证。长期安装优先走 [Developer ID 签名与公证](SAFARI_DEVELOPER_ID.md)，不能用未签名 App 或临时加载代替。
+
 2026-10-18 更新：正式发布可使用 App Store Connect 的 Safari Web Extension Packager 网页上传 ZIP，不强制要求本地安装 Xcode。需要 Apple Developer Program 会员，后续仍有测试与商店审核。临时扩展会在退出 Safari 或 24 小时后移除，长期保存记录请走正式安装并先导出备份。完整步骤及费用见 [正式发布与保留记录更新](RELEASE_AND_UPDATES.md)。以下 Xcode 说明是另一条原生构建路径。
 
 0.1.2 已修复共享帖子识别器误排除普通 `<a role="link">` 的问题。已安装的旧 Safari 构建同样可能受影响，需重新构建 / 打包更新后的资源。用户截图显示此前 Safari 尚未安装完成，因此不能把 Arc 发现的 DOM 错误当作 Safari 已经实测的运行故障；安装、签名与站点授权仍需分开确认。

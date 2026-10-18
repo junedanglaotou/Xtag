@@ -1,0 +1,88 @@
+name: Safari Developer ID signed release candidate
+on:
+  workflow_dispatch:
+    inputs:
+      team_id:
+        description: Apple Team ID (10 characters)
+        required: true
+      bundle_id:
+        description: Permanent container bundle ID (reuse on every update)
+        required: true
+        default: com.xtag.private
+permissions:
+  contents: read
+jobs:
+  sign-and-notarize:
+    runs-on: macos-15
+    environment: safari-release
+    timeout-minutes: 60
+    env:
+      APPLE_TEAM_ID: ${{ inputs.team_id }}
+      XTAG_SAFARI_BUNDLE_ID: ${{ inputs.bundle_id }}
+      XTAG_BUILD_NUMBER: ${{ github.run_number }}
+      XTAG_NOTARY_PROFILE: xtag-notary
+    steps:
+      - uses: actions/checkout@v4
+      - uses: actions/setup-node@v4
+        with:
+          node-version: '24'
+          cache: npm
+      - name: Validate credential configuration
+        env:
+          P12_BASE64: ${{ secrets.DEVELOPER_ID_P12_BASE64 }}
+          P12_PASSWORD: ${{ secrets.DEVELOPER_ID_P12_PASSWORD }}
+          KEY_BASE64: ${{ secrets.APPLE_API_KEY_BASE64 }}
+          KEY_ID: ${{ secrets.APPLE_API_KEY_ID }}
+          ISSUER_ID: ${{ secrets.APPLE_API_ISSUER_ID }}
+        shell: bash
+        run: |
+          set -euo pipefail
+          for key in P12_BASE64 P12_PASSWORD KEY_BASE64 KEY_ID ISSUER_ID; do
+            test -n "${!key}" || { echo "Missing credential: $key" >&2; exit 1; }
+          done
+      - run: npm ci
+      - run: npm run typecheck
+      - run: npm test
+      - run: npm run build:safari
+      - run: node scripts/check-builds.mjs safari
+      - run: sh scripts/convert-safari.sh --macos-only
+      - name: Import signing identity into a temporary keychain
+        env:
+          P12_BASE64: ${{ secrets.DEVELOPER_ID_P12_BASE64 }}
+          P12_PASSWORD: ${{ secrets.DEVELOPER_ID_P12_PASSWORD }}
+          KEY_BASE64: ${{ secrets.APPLE_API_KEY_BASE64 }}
+          APPLE_API_KEY_ID: ${{ secrets.APPLE_API_KEY_ID }}
+          APPLE_API_ISSUER_ID: ${{ secrets.APPLE_API_ISSUER_ID }}
+        shell: bash
+        run: |
+          set -euo pipefail
+          umask 077
+          keychain="$RUNNER_TEMP/xtag-signing.keychain-db"
+          password=$(openssl rand -hex 32)
+          echo "::add-mask::$password"
+          security create-keychain -p "$password" "$keychain"
+          security set-keychain-settings -lut 21600 "$keychain"
+          security unlock-keychain -p "$password" "$keychain"
+          printf '%s' "$P12_BASE64" | base64 --decode > "$RUNNER_TEMP/xtag-signing.p12"
+          security import "$RUNNER_TEMP/xtag-signing.p12" -P "$P12_PASSWORD" -A -t cert -f pkcs12 -k "$keychain"
+          security set-key-partition-list -S apple-tool:,apple:,codesign: -s -k "$password" "$keychain" >/dev/null
+          security list-keychains -d user -s "$keychain" "$HOME/Library/Keychains/login.keychain-db"
+          key="$RUNNER_TEMP/AuthKey_$APPLE_API_KEY_ID.p8"
+          printf '%s' "$KEY_BASE64" | base64 --decode > "$key"
+          xcrun notarytool store-credentials "$XTAG_NOTARY_PROFILE" --key "$key" --key-id "$APPLE_API_KEY_ID" --issuer "$APPLE_API_ISSUER_ID" --keychain "$keychain"
+          printf 'APPLE_API_KEY_PATH=%s\nAPPLE_API_KEY_ID=%s\nAPPLE_API_ISSUER_ID=%s\nXTAG_NOTARY_KEYCHAIN=%s\n' "$key" "$APPLE_API_KEY_ID" "$APPLE_API_ISSUER_ID" "$keychain" >> "$GITHUB_ENV"
+      - run: bash scripts/archive-safari-developer-id.sh
+      - run: bash scripts/notarize-safari-macos.sh
+      - uses: actions/upload-artifact@v4
+        with:
+          name: xtag-safari-developer-id-notarized
+          if-no-files-found: error
+          path: |
+            dist/*-macos-developer-id.zip
+            dist/*-macos-developer-id.zip.sha256
+      - name: Remove temporary signing credentials
+        if: always()
+        shell: bash
+        run: |
+          security delete-keychain "$RUNNER_TEMP/xtag-signing.keychain-db" || true
+          rm -f "$RUNNER_TEMP/xtag-signing.p12" "$RUNNER_TEMP"/AuthKey_*.p8

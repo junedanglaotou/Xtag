@@ -41,6 +41,7 @@
 .xtag-app .popup { width:340px; padding:24px; }
 .xtag-app .primary { background:var(--ink); color:var(--bg); border-color:var(--ink); }
 .xtag-app .wide { width:100%; }
+.xtag-app .open-records { display:block; text-align:center; border:1px solid var(--ink); border-radius:9px; padding:8px 12px; min-height:40px; }
 .xtag-app .footnote { font-size:11px; color:var(--muted); margin-top:20px; }
 .xtag-app .countline { margin:16px 0; }
 .xtag-app .load-more { display:block; margin:20px auto; }

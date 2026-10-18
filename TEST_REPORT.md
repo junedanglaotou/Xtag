@@ -1,3 +1,27 @@
+# XTag 0.1.4 测试报告
+
+日期：2026-10-18。Windows、Node.js 24.12.0。用户优先要求 macOS GitHub 下载正式安装，确认尚未开通 Apple 开发者会员。
+
+## 本次结果
+
+- TypeScript 通过。Vitest **32/32 通过**（3 个文件，2.08s）。Chrome MV3 / Firefox MV2 / Safari MV2 生产构建通过，权限仍只有 storage 及原 X 域名内容脚本范围。
+- Playwright **17/17 通过（36.6s）**，含之前的原地升级、备份迁移、深浅配色、手机 / 桌面 fixture。
+- 新增实际 Safari 构建文件的编码回归：原始 background-utf8.html / background.js 放入 Chromium MV3 测试容器，UTF-8 characterSet、四标签保存与刷新、取消后刷新、中文「标签无效」提示均通过。后台 HTML / JS 没有改写；仅用于加载的 manifest 换成 MV3 兼容容器并添加空 worker。
+- 新增 popup HTML 内原生历史链接测试：捕获新标签页 URL，读取已保存记录，通过。这里并非点击真实 Safari 工具栏弹窗。
+- `npm run check:builds` 检查三种产物：MV2 显式 UTF-8 页面 / page 字段、背景脚本全部 ASCII 字节、权限范围，通过。打包时再次执行检查。
+- 本地旧 0.1.3 Safari ZIP 对照：background.scripts、无 UTF-8 后台页、background.js 有 348 个非 ASCII 字节；新 0.1.4 ZIP 为 background.page、含 UTF-8 后台页、非 ASCII 字节为 0。
+- macOS 未签名编译 CI 新增逐字节验证内嵌 background.js、background-utf8.html，及签名脚本 bash 语法检查；远程本次结果以 Actions 为准。
+
+## 用户真实 Safari 反馈与未完成项
+
+用户报告 0.1.3 的自动后台页面实际为 windows-1252，中文标签校验及错误提示损坏；本机加 meta charset、background.page、Unicode 转义后，保存、刷新保留、个人页历史、取消均通过。此为用户实际测试反馈，本项目没有独立复核用户浏览器。0.1.4 真实 Safari、重开 Safari / Mac、实际 popup 点击仍需复测。
+
+Developer ID 签名、公证、staple / Gatekeeper 校验流程已实现，但因无会员 / 证书 / 凭据，尚未执行，当前没有 `macos-developer-id.zip` 正式产物。未签名 App 编译通过不等于长期安装通过。完整说明见 SAFARI_DEVELOPER_ID.md。
+
+本次第一次类型检查发现 manifest background 的 MV2 / MV3 联合类型未收窄，已补充检查后通过；不影响数据逻辑。Windows 本地没有 Bash，未将脚本语法记为本地验证通过；将在 macOS CI 检查。
+
+## 历史报告（0.1.3）
+
 # XTag 0.1.3 测试报告
 
 日期：2026-10-18。Windows、Node.js 24.12.0、npm 11.6.2。

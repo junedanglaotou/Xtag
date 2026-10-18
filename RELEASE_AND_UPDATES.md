@@ -1,6 +1,6 @@
 # XTag 正式发布、费用与保留记录更新
 
-核实日期：2026-10-18。当前仍是 0.1.3 开发测试版本，没有任何商店上架或审核通过记录。用户本人使用桌面 Chrome，Safari 由其他人测试，安装方式尚未确认。
+核实日期：2026-10-18。当前仍是 0.1.4 开发测试版本，没有任何商店上架或审核通过记录。用户本人使用桌面 Chrome，Safari 由其他人测试，安装方式尚未确认。
 
 ## 费用
 
@@ -31,11 +31,13 @@ Chrome 与 Safari 都发布的基本平台预算：按美元标价首年 US$104�
 
 ## Safari：正式安装与临时测试
 
+当前优先选择 macOS GitHub 下载版：Developer ID Application 签名容器与内嵌扩展 → Apple notarization → staple / Gatekeeper 校验 → GitHub 分发。该路径同样需要 Apple 付费会员；尚无会员和证书，因此没有正式签名产物。完整准备流程见 [SAFARI_DEVELOPER_ID.md](SAFARI_DEVELOPER_ID.md)。它不会自动通过 App Store 更新；下载新版 App 覆盖原位置，保持原身份。下述两种是其他发布路径。
+
 临时添加文件夹不等于正式安装。Apple 的当前文档说明，Safari 的临时扩展会在退出 Safari 或 24 小时后移除。因此临时目录测试不能承担长期记录保存。测试者若还有记录，先导出 JSON，再切换正式安装。
 
 当前有两条官方发布路径：
 
-1. **App Store Connect 网页打包**：付费开发者账号创建 XTag app 记录 → Xcode Cloud 页的 Safari Web Extension Packager 上传 `dist/xtag-0.1.3-safari-webextension.zip` → 处理打包警告 → TestFlight 真机测试 → 补齐商店材料 → 提交 App Store 审核。此路径不要求本地 Mac / Xcode；具体账号入口需登录后确认。上传 ZIP 不等于审核成功。
+1. **App Store Connect 网页打包**：付费开发者账号创建 XTag app 记录 → Xcode Cloud 页的 Safari Web Extension Packager 上传 `dist/xtag-0.1.4-safari-webextension.zip` → 处理打包警告 → TestFlight 真机测试 → 补齐商店材料 → 提交 App Store 审核。此路径不要求本地 Mac / Xcode；具体账号入口需登录后确认。上传 ZIP 不等于审核成功。
 2. **Xcode 原生工程**：现有 macOS CI 可生成未签名 App 和工程；在自己的 Apple Team 下完成签名、归档和 App Store Connect 上传。需要自定义原生功能时用这条路径。
 
 正式发布后，后续构建上传到**同一个 App Store Connect app 记录**，保持容器 App 与扩展的 Bundle ID、开发团队身份不变，递增版本和构建号。用户通过 App Store 更新原 App，无需卸载重装。当前脚本的开发用容器 ID 为 `com.xtag.private`；正式账号下是否可注册尚未核验，不能把它当作已经保留的商店身份。不能每次生成新商店条目或新 Bundle ID。

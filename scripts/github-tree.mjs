@@ -9,5 +9,5 @@ async function collect(dir) {
   }
 }
 for (const dir of roots) await collect(dir);
-for (const name of ['package.json', 'package-lock.json', 'wxt.config.ts', 'tsconfig.json', 'vitest.config.ts', 'playwright.config.ts', 'README.md', 'COMPATIBILITY.md', 'TEST_REPORT.md', 'PRIVACY.md', 'KNOWN_LIMITATIONS.md', 'POLICY_REVIEW.md', 'SAFARI_TROUBLESHOOTING.md', 'RELEASE_AND_UPDATES.md', '.gitignore']) entries.push({ path: name, mode: '100644', type: 'blob', content: (await readFile(name, 'utf8')).replace(/^\uFEFF/, '') });
+for (const name of ['package.json', 'package-lock.json', 'wxt.config.ts', 'tsconfig.json', 'vitest.config.ts', 'playwright.config.ts', 'README.md', 'COMPATIBILITY.md', 'TEST_REPORT.md', 'PRIVACY.md', 'KNOWN_LIMITATIONS.md', 'POLICY_REVIEW.md', 'SAFARI_TROUBLESHOOTING.md', 'RELEASE_AND_UPDATES.md', 'SAFARI_DEVELOPER_ID.md', '.gitignore']) entries.push({ path: name, mode: '100644', type: 'blob', content: (await readFile(name, 'utf8')).replace(/^\uFEFF/, '') });
 process.stdout.write(JSON.stringify(entries));

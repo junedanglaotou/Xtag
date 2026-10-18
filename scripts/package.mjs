@@ -2,7 +2,9 @@ import { readFile, readdir, mkdir, writeFile } from 'node:fs/promises';
 import path from 'node:path';
 import { zipSync } from 'fflate';
 import { createHash } from 'node:crypto';
+await import('./check-builds.mjs');
 const root = path.resolve('.');
+const { version } = JSON.parse(await readFile('package.json', 'utf8'));
 async function collect(directory, prefix = '') {
   const files = {};
   for (const item of await readdir(directory, { withFileTypes: true })) {
@@ -14,7 +16,8 @@ async function collect(directory, prefix = '') {
 }
 await mkdir('dist', { recursive: true });
 const hashes = [];
-for (const [target, name] of [['chrome-mv3', 'xtag-0.1.3-chrome-edge.zip'], ['firefox-mv2', 'xtag-0.1.3-firefox-unsigned.xpi'], ['safari-mv2', 'xtag-0.1.3-safari-webextension.zip']]) {
+for (const [target, suffix] of [['chrome-mv3', 'chrome-edge.zip'], ['firefox-mv2', 'firefox-unsigned.xpi'], ['safari-mv2', 'safari-webextension.zip']]) {
+  const name = `xtag-${version}-${suffix}`;
   const files = await collect(path.join(root, '.output', target));
   const manifest = JSON.parse(new TextDecoder().decode(files['manifest.json']));
   if (manifest.chrome_url_overrides || manifest.permissions.some(p => p !== 'storage')) throw new Error(`Unexpected permissions / overrides in ${target}`);
@@ -24,7 +27,7 @@ for (const [target, name] of [['chrome-mv3', 'xtag-0.1.3-chrome-edge.zip'], ['fi
 }
 const source = {};
 for (const directory of ['src', 'entrypoints', 'tests', 'scripts', '.github']) Object.assign(source, await collect(path.join(root, directory), `${directory}/`));
-for (const file of ['package.json', 'package-lock.json', 'wxt.config.ts', 'tsconfig.json', 'vitest.config.ts', 'playwright.config.ts', 'README.md', 'COMPATIBILITY.md', 'TEST_REPORT.md', 'PRIVACY.md', 'KNOWN_LIMITATIONS.md', 'POLICY_REVIEW.md', 'SAFARI_TROUBLESHOOTING.md', 'RELEASE_AND_UPDATES.md', '.gitignore']) source[file] = new Uint8Array(await readFile(path.join(root, file)));
-const sourceData = zipSync(source, { level: 9 }); await writeFile('dist/xtag-0.1.3-source.zip', sourceData);
-hashes.push(`${createHash('sha256').update(sourceData).digest('hex')}  xtag-0.1.3-source.zip`);
+for (const file of ['package.json', 'package-lock.json', 'wxt.config.ts', 'tsconfig.json', 'vitest.config.ts', 'playwright.config.ts', 'README.md', 'COMPATIBILITY.md', 'TEST_REPORT.md', 'PRIVACY.md', 'KNOWN_LIMITATIONS.md', 'POLICY_REVIEW.md', 'SAFARI_TROUBLESHOOTING.md', 'RELEASE_AND_UPDATES.md', 'SAFARI_DEVELOPER_ID.md', '.gitignore']) source[file] = new Uint8Array(await readFile(path.join(root, file)));
+const sourceData = zipSync(source, { level: 9 }); await writeFile(`dist/xtag-${version}-source.zip`, sourceData);
+hashes.push(`${createHash('sha256').update(sourceData).digest('hex')}  xtag-${version}-source.zip`);
 await writeFile('dist/SHA256SUMS.txt', hashes.join('\n') + '\n');

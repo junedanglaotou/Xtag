@@ -17,6 +17,11 @@ jobs:
           cache: npm
       - run: npm ci
       - run: npm run build:safari
+      - run: node scripts/check-builds.mjs safari
+      - name: Check release script syntax (signing still requires an Apple account)
+        run: |
+          bash -n scripts/archive-safari-developer-id.sh
+          bash -n scripts/notarize-safari-macos.sh
       - name: Generate macOS container project
         run: sh scripts/convert-safari.sh --macos-only
       - name: Compile app and extension without an Apple certificate
@@ -40,8 +45,11 @@ jobs:
           test -n "$manifest"
           cmp "$manifest" .output/safari-mv2/manifest.json
           cmp "$(dirname "$manifest")/content-scripts/content.js" .output/safari-mv2/content-scripts/content.js
-          ditto -c -k --sequesterRsrc --keepParent "$app" dist/xtag-0.1.3-macos-unsigned-app.zip
-          ditto -c -k --sequesterRsrc --keepParent safari-project dist/xtag-0.1.3-safari-xcode-project.zip
+          cmp "$(dirname "$manifest")/background.js" .output/safari-mv2/background.js
+          cmp "$(dirname "$manifest")/background-utf8.html" .output/safari-mv2/background-utf8.html
+          version=$(node -p "require('./package.json').version")
+          ditto -c -k --sequesterRsrc --keepParent "$app" "dist/xtag-$version-macos-unsigned-app.zip"
+          ditto -c -k --sequesterRsrc --keepParent safari-project "dist/xtag-$version-safari-xcode-project.zip"
           printf '%s\n' \
             'Developer test build only: no Apple developer signature or notarization.' \
             'Compilation does not verify Safari activation, permissions or real x.com behavior.' \

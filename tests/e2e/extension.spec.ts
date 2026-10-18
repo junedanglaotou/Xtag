@@ -93,6 +93,17 @@ test('JSON backup export and validated merge import work in extension history', 
   await page.getByLabel('选择 JSON 备份').setInputFiles({ name: 'bad.json', mimeType: 'application/json', buffer: Buffer.from('{"schemaVersion":999,"records":[]}') });
   await expect(page.getByRole('status')).toContainText('导入失败'); await expect(page.locator('.record')).toHaveCount(2);
 });
+test('popup history link opens the original extension records page', async () => {
+  await choose('101', '有用');
+  await page.goto(`chrome-extension://${extensionId}/popup.html`);
+  await expect(page.locator('.countline')).toContainText('1');
+  const link = page.getByRole('link', { name: '打开标签记录' });
+  await expect(link).toHaveAttribute('href', `chrome-extension://${extensionId}/records.html`);
+  const [records] = await Promise.all([context.waitForEvent('page'), link.click()]);
+  await records.waitForLoadState();
+  expect(records.url()).toBe(`chrome-extension://${extensionId}/records.html`);
+  await expect(records.locator('.record')).toHaveCount(1);
+});
 for (const mode of [{ name: 'mobile narrow', width: 390, height: 844, dark: true }, { name: 'desktop site layout', width: 980, height: 800, dark: false }]) {
   test(`${mode.name}: touch targets, no horizontal overflow and unclipped dropdown`, async () => {
     await page.setViewportSize({ width: mode.width, height: mode.height }); await page.emulateMedia({ colorScheme: mode.dark ? 'dark' : 'light' }); await page.reload();

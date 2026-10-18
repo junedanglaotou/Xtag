@@ -1,5 +1,11 @@
 # 已知限制、失败和待完成事项
 
+## 0.1.4 Safari 编码与正式安装状态
+
+已修复后台 HTML 缺失编码声明和 Vite 8 / Rolldown 默认非 ASCII JS 引发的中文标签 / 错误提示解码问题。用户报告 Safari 0.1.3 手修版保存、刷新保留、主页历史和取消通过；本项目的 0.1.4 后台文件在 Chromium MV3 harness 中回归通过，不能把它写成 Safari 引擎验证。
+
+工具栏「打开标签记录」已改原生链接，Chromium popup HTML 测试通过，真实 Safari 工具栏仍待手动复测。用户确认还没有 Apple Developer Program 会员，因此 Developer ID 签名、公证和 GitHub 长期安装包仍未完成。脚本和手动 CI 已准备，详见 SAFARI_DEVELOPER_ID.md。以下“未运行 Safari”的历史描述指本项目没有独立运行，而不是否定用户的本机实测反馈。
+
 ## 0.1.2 已确认并修复的真实页面问题
 
 用户在 Arc 真实 X 上发现：普通时间 `<a role="link">` 被旧版 `EXCLUDED` 排除，所有帖子识别失败。补齐 fixture 的真实属性后，原代码有 7 项单元测试失败；修为 `[role="link"]:not(a)` 后 29 项单元和 11 项浏览器 fixture 测试通过。作者 / 头像 / 时间链接的浏览器 fixture 均已补上 role，quoteTweet、card.wrapper、非 anchor 的 link 容器和嵌套 article 仍排除。

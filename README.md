@@ -4,19 +4,21 @@
 
 GitHub：<https://github.com/junedanglaotou/Xtag>
 
+0.1.4 修复 Safari MV2 后台编码：显式 UTF-8 后台 HTML 与 ASCII 安全 JavaScript，避免中文标签及错误提示变乱码。工具栏历史入口改为原生链接。用户已报告 0.1.3 本机手修后 Safari 标签保存、刷新保留、主页历史及取消通过；本项目对 0.1.4 的测试范围见 TEST_REPORT.md。你希望的 GitHub 长期安装版将采用 Developer ID 签名与 Apple 公证，流程见 [SAFARI_DEVELOPER_ID.md](SAFARI_DEVELOPER_ID.md)；账号尚未开通，当前没有签名公证产物。
+
 **已在使用的用户请先看 [保留记录更新与正式发布](RELEASE_AND_UPDATES.md)。** 更新开发包时，保留原加载目录和扩展 ID；不要卸载或把每个版本作为新扩展安装。转商店版前先导出 JSON。文档包含各商店费用及 Safari 无需本地 Xcode 的 App Store Connect 网页打包路径，当前尚未上架任何商店。
 
 0.1.3 将「未知」改名为「没用」，并统一以背景高亮区分标签：有用青色、谣言红色、没用黄色、高质蓝色。文字颜色保持一致；未标记帖子仍空白。帖子按钮、下拉菜单、主页汇总和历史记录同步更新。原本的「未知」本地记录会在原数据库中原子迁移为「没用」，ID、摘要和标记时间保留；导入旧 JSON 备份也会自动转换。
 
 0.1.2 已修复所有浏览器共用的帖子识别错误：真实 X 的作者 / 时间链接含 `role="link"`，旧版会误判为嵌套卡片并跳过。现在只排除非 `<a>` 的 link 容器，同时保留 quoteTweet / card.wrapper 规则。请使用 0.1.2 或更新版本，并在更新扩展后刷新 X。用户已报告 Arc 的真实 X 按钮和四项菜单正常；这不等于其他浏览器或持久化等全流程已在真实 X 验证。
 
-构建下载：[GitHub Actions](https://github.com/junedanglaotou/Xtag/actions) 中打开成功的 `XTag checks` 运行，在 Artifacts 下载 `xtag-0.1.3`；其中包含 Chrome / Edge、Firefox、Safari 转换源和完整源码包。GitHub 下载 Actions artifact 可能要求登录。本地现成产物在 `dist/`。
+构建下载：[GitHub Actions](https://github.com/junedanglaotou/Xtag/actions) 中打开成功的 `XTag checks` 运行，在 Artifacts 下载 `xtag-0.1.4`；其中包含 Chrome / Edge、Firefox、Safari 转换源和完整源码包。GitHub 下载 Actions artifact 可能要求登录。本地现成产物在 `dist/`。
 
 > 本版本浏览器测试使用本地 X DOM fixtures。没有登录真实 X，不能将测试结果理解为真实 X 网站已验证。Safari 源构建不等于已签名可安装的 Safari App。详见 [测试报告](TEST_REPORT.md) 和 [兼容性](COMPATIBILITY.md)。
 
 ## 立即安装 Chrome / Edge
 
-1. 下载 `dist/xtag-0.1.3-chrome-edge.zip` 并解压到固定目录。也可以直接使用本项目 `.output/chrome-mv3`。
+1. 下载 `dist/xtag-0.1.4-chrome-edge.zip` 并解压到固定目录。也可以直接使用本项目 `.output/chrome-mv3`。
 2. Chrome 打开 `chrome://extensions`；Edge 打开 `edge://extensions`。
 3. 打开「开发者模式」，点「加载已解压的扩展」，选择**直接包含 manifest.json 的目录**。不要选择 ZIP 或项目根目录。
 4. 打开或刷新 `https://x.com`，使用浏览器扩展站点权限设置允许在 X 上运行。
@@ -36,11 +38,11 @@ GitHub：<https://github.com/junedanglaotou/Xtag>
 
 ## Firefox、Android 与 Safari
 
-Firefox 桌面临时测试：解压 `xtag-0.1.3-firefox-unsigned.xpi`（ZIP 格式），打开 `about:debugging#/runtime/this-firefox`，点「临时载入附加组件」并选择 manifest.json。临时安装在重启 Firefox 后失效；正常长期安装需要 Mozilla 签名，不能把未签名 XPI 当作正式安装包。
+Firefox 桌面临时测试：解压 `xtag-0.1.4-firefox-unsigned.xpi`（ZIP 格式），打开 `about:debugging#/runtime/this-firefox`，点「临时载入附加组件」并选择 manifest.json。临时安装在重启 Firefox 后失效；正常长期安装需要 Mozilla 签名，不能把未签名 XPI 当作正式安装包。
 
 Android Firefox 正常发行安装需要签名版本，当前没有签名。开发者可以使用 `web-ext run --target=firefox-android` 配合 ADB 和 USB 调试在自己的测试设备临时安装；具体步骤见 [COMPATIBILITY.md](COMPATIBILITY.md)。
 
-Safari：交付 `.output/safari-mv2` 和 `xtag-0.1.3-safari-webextension.zip`，仅供 macOS 上 Xcode 转换。不能直接在 iPhone 点 ZIP 安装。macOS 下运行 `sh scripts/convert-safari.sh` 后，在 Xcode 完成团队选择、签名与目标设备运行。见兼容性文档。
+Safari：交付 `.output/safari-mv2` 和 `xtag-0.1.4-safari-webextension.zip`，仅供 macOS 上 Xcode 转换。不能直接在 iPhone 点 ZIP 安装。macOS 下运行 `sh scripts/convert-safari.sh` 后，在 Xcode 完成团队选择、签名与目标设备运行。见兼容性文档。
 
 Desktop Site 只是显示模式。官方 Android Chrome 不应按普通桌面 Chrome 扩展方式安装。第三方 Chromium 浏览器需逐个验证其扩展安装能力。
 

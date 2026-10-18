@@ -11,3 +11,8 @@ playwright-report/
 
 safari-project/
 macos-build/
+macos-release/
+*.p12
+*.p8
+*.mobileprovision
+*.provisionprofile

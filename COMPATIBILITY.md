@@ -13,7 +13,7 @@
 | Android 支持 WebExtension 的 Chromium | Chrome MV3 构建候选 | 未确认任何第三方浏览器支持；必须逐一安装验收 |
 | Android 官方 Chrome | 无普通扩展安装产物 | 不能默认支持普通 Chrome Extension；Desktop Site 不改变这一点 |
 | Android Desktop Site | 980×800 布局 fixture 场景 | 仅桌面浏览器视口模拟；未做 Android 真机测试 |
-| macOS Safari | 0.1.1 源包、Xcode 工程、未签名 Universal Mac App | macOS CI 转换 / 编译通过；未取得 Apple 签名、公证，未做 Safari 实际运行验证 |
+| macOS Safari | 0.1.4 UTF-8 源包、Xcode 工程、未签名 Mac 开发包；签名公证流程待凭据 | 用户报告 0.1.3 手修版真实 X 保存 / 刷新 / 历史 / 取消通过；本项目未独立复核 Safari，0.1.4 popup 待手动复测；无 Developer ID 正式产物 |
 | iPhone / iPad Safari | 同一源构建供 Xcode 转换 | 未生成可安装 App，无设备测试，无签名 |
 
 ## Firefox 桌面
