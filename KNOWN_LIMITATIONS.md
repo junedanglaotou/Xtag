@@ -27,9 +27,14 @@
 
 - Edge、macOS Chrome、Firefox Desktop、所有 Android 真机、Safari macOS、iOS/iPadOS 尚未运行。
 - Firefox 未取得 Mozilla 签名；正常永久安装和 Android 稳定版分发未完成。
-- Safari 未转换为 Xcode 工程，未编译 / Apple 签名 / 安装；没有可直接安装的 iOS App。
+- Safari 已在 macOS CI 生成 Xcode 工程并编译 Mac App，但未取得 Apple 开发者签名 / 公证，未做真实 Safari 加载验证；没有可直接安装的 iOS App。
 - 所有商店审核未执行。没有自动发表任何 X 内容。
 - GitHub Actions 首轮 Ubuntu 全流程已通过，后续提交状态以仓库 Actions 为准。
 
 
-0.1.1 跟进：菜单不再无条件依赖 Safari 17 的 Popover API；已新增 macOS 原生 App 构建工作流，尚未运行。没有获得 Apple 开发者签名 / 公证，也没有在用户真实 Safari 上复现。详情见 SAFARI_TROUBLESHOOTING.md。
+0.1.1 跟进：菜单不再无条件依赖 Safari 17 的 Popover API；已新增 macOS 原生 App 构建工作流并通过编译。没有获得 Apple 开发者签名 / 公证，也没有在用户真实 Safari 上复现。详情见 SAFARI_TROUBLESHOOTING.md。
+
+
+### 0.1.1 原生构建结果更新
+
+[macOS 原生 CI 已通过](https://github.com/junedanglaotou/Xtag/actions/runs/39101383787)。在该页面 Artifacts 下载 xtag-safari-macos-developer，其中含未签名 Universal Mac App 和 Xcode 工程。此结果更新此前“尚未运行 / 未转换 / 未编译”的描述。Apple 开发者签名、公证、真实 Safari 启用和真实 X 仍未验证。不要将这个开发包当作已签名的普通安装包。

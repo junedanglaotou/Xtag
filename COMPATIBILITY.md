@@ -12,7 +12,7 @@
 | Android 支持 WebExtension 的 Chromium | Chrome MV3 构建候选 | 未确认任何第三方浏览器支持；必须逐一安装验收 |
 | Android 官方 Chrome | 无普通扩展安装产物 | 不能默认支持普通 Chrome Extension；Desktop Site 不改变这一点 |
 | Android Desktop Site | 980×800 布局 fixture 场景 | 仅桌面浏览器视口模拟；未做 Android 真机测试 |
-| macOS Safari | Safari MV2 WebExtension 源构建及转换脚本 | 无 macOS / Xcode，未转换、未签名、未运行 |
+| macOS Safari | 0.1.1 源包、Xcode 工程、未签名 Universal Mac App | macOS CI 转换 / 编译通过；未取得 Apple 签名、公证，未做 Safari 实际运行验证 |
 | iPhone / iPad Safari | 同一源构建供 Xcode 转换 | 未生成可安装 App，无设备测试，无签名 |
 
 ## Firefox 桌面
@@ -65,4 +65,9 @@ sh scripts/convert-safari.sh
 官方流程：[Converting a web extension for Safari](https://developer.apple.com/documentation/safariservices/converting-a-web-extension-for-safari)。
 
 
-0.1.1 Safari 修复进度：已新增菜单 API 回退、兼容新旧 Xcode 打包工具及 macOS 容器 App 编译工作流。该工作流尚待首次运行；此前表格的“未转换 / 未编译”是 0.1.0 状态。详见 SAFARI_TROUBLESHOOTING.md。真实 Safari 故障仍在收集版本和失败步骤。
+0.1.1 Safari 修复进度：已新增菜单 API 回退、兼容新旧 Xcode 打包工具及 macOS 容器 App 编译工作流。该工作流已通过首次 macOS 原生编译；此前表格的“未转换 / 未编译”是 0.1.0 状态。详见 SAFARI_TROUBLESHOOTING.md。真实 Safari 故障仍在收集版本和失败步骤。
+
+
+### 0.1.1 原生构建结果更新
+
+[macOS 原生 CI 已通过](https://github.com/junedanglaotou/Xtag/actions/runs/39101383787)。在该页面 Artifacts 下载 xtag-safari-macos-developer，其中含未签名 Universal Mac App 和 Xcode 工程。此结果更新此前“尚未运行 / 未转换 / 未编译”的描述。Apple 开发者签名、公证、真实 Safari 启用和真实 X 仍未验证。不要将这个开发包当作已签名的普通安装包。

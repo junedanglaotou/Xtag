@@ -40,4 +40,13 @@ Playwright 使用 Chrome for Testing 156.0.8078.4 加载实际生产 MV3 扩展�
 没有登录真实 X，没有验证真实 For You / Following / 搜索页面。视口模拟不等于 Android / iOS 真机通过。Firefox 和 Safari 仅构建，没有运行。远程 CI 是否通过另行记录。
 
 
-0.1.1 更新：26/26 单元测试（含新增 3 项 Safari 菜单能力检测 / 回退测试）与类型检查通过；本次 11/11 Chromium 浏览器回归通过（25.0s）；Chrome / Firefox / Safari 三目标构建通过。macOS 原生编译结果待首次 CI 运行。之前 23/23、11/11 是 0.1.0 的记录。
+0.1.1 更新：26/26 单元测试（含新增 3 项 Safari 菜单能力检测 / 回退测试）与类型检查通过；本次 11/11 Chromium 浏览器回归通过（25.0s）；Chrome / Firefox / Safari 三目标构建通过。macOS 原生编译已通过，见下方结果。之前 23/23、11/11 是 0.1.0 的记录。
+
+
+## 0.1.1 已执行的 macOS 原生编译
+
+[macOS CI 成功](https://github.com/junedanglaotou/Xtag/actions/runs/39101383787)：macos-15、Xcode 16.4、MacOSX15.5 SDK，生成 Xcode 工程并编译 arm64 + x86_64 Universal Mac App 与 Safari .appex，xcodebuild 输出 BUILD SUCCEEDED。
+
+[Ubuntu CI](https://github.com/junedanglaotou/Xtag/actions/runs/39101383771) 也通过。原生开发包已上传至 GitHub artifact：xtag-safari-macos-developer（ID 12126741213），内含 Mac App ZIP、Xcode 工程 ZIP、说明和 SHA-256 文件。已通过 GitHub API 确认 artifact 存在；本地下载返回 403，未在本地检查其中的二进制内容，不声称已完成本地哈希验证。
+
+Mac App 使用 CODE_SIGNING_ALLOWED=NO 编译，没有 Apple 开发者签名和公证；未启动真实 Safari、未登录 X、未复现用户具体失败。此前“未转换 / 未编译”是 0.1.0 状态，不能将本次编译通过称为 Safari 运行通过。

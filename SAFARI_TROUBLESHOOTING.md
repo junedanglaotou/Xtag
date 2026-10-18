@@ -52,3 +52,8 @@ sh scripts/convert-safari.sh --macos-only
 0.1.0 直接调用 showPopover / hidePopover，并查询 :popover-open。Popover 是 Safari 17 新增 API，较早版本可能在打开菜单时抛错。0.1.1 改成能力检测：原生 API 可用时使用顶层菜单；缺失或调用失败时改用独立固定浮层。浮层位于 X 容器之外，避免被帖子 overflow 裁剪。
 
 新增三项回归测试覆盖：API 缺失、原生模式和原生打开失败后的回退。这是代码兼容修复，不代表已经定位到你这次故障的根因；仍需结合你的版本与失败步骤判断。
+
+
+### 0.1.1 原生构建结果更新
+
+[macOS 原生 CI 已通过](https://github.com/junedanglaotou/Xtag/actions/runs/39101383787)。在该页面 Artifacts 下载 xtag-safari-macos-developer，其中含未签名 Universal Mac App 和 Xcode 工程。此结果更新此前“尚未运行 / 未转换 / 未编译”的描述。Apple 开发者签名、公证、真实 Safari 启用和真实 X 仍未验证。不要将这个开发包当作已签名的普通安装包。
