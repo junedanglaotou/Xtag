@@ -49,6 +49,8 @@ Desktop Site 的网页 viewport 可能约 980px，扩展会按实际布局宽度
 
 ## Safari macOS / iOS
 
+2026-10-18 补充：Apple 已提供 App Store Connect 网页打包服务，可上传 Safari WebExtension ZIP，不要求发布者在本地使用 Mac / Xcode。需要付费 Apple 开发者账号、实际 Safari 测试及审核；当前未使用该账号流程。原生工程路径与网页路径、更新保留数据要求见 [RELEASE_AND_UPDATES.md](RELEASE_AND_UPDATES.md)。下文关于 Windows 的限制指本地 Xcode 原生构建，不代表没有网页发布入口。
+
 本项目只产出可供转换的 WebExtension 文件。Windows 无法提供真实 Xcode 工程构建、Apple 签名 App、IPA、TestFlight 或 App Store 审核结果。
 
 在有 Xcode 的 Mac 上：

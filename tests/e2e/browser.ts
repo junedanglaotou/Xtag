@@ -2,8 +2,8 @@ import { chromium, type BrowserContext } from '@playwright/test';
 import { spawn } from 'node:child_process';
 import { readFile, unlink } from 'node:fs/promises';
 import path from 'node:path';
-export async function launchExtension(profile: string): Promise<{ context: BrowserContext; extensionId: string; close: () => Promise<void> }> {
-  const extension = path.resolve('.output/chrome-mv3');
+export async function launchExtension(profile: string, extensionPath = '.output/chrome-mv3'): Promise<{ context: BrowserContext; extensionId: string; close: () => Promise<void> }> {
+  const extension = path.resolve(extensionPath);
   const args = [`--disable-extensions-except=${extension}`, `--load-extension=${extension}`];
   if (process.platform !== 'win32') {
     const context = await chromium.launchPersistentContext(profile, { channel: 'chromium', headless: true, args, viewport: { width: 1280, height: 900 } });

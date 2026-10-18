@@ -24,7 +24,7 @@ for (const [target, name] of [['chrome-mv3', 'xtag-0.1.3-chrome-edge.zip'], ['fi
 }
 const source = {};
 for (const directory of ['src', 'entrypoints', 'tests', 'scripts', '.github']) Object.assign(source, await collect(path.join(root, directory), `${directory}/`));
-for (const file of ['package.json', 'package-lock.json', 'wxt.config.ts', 'tsconfig.json', 'vitest.config.ts', 'playwright.config.ts', 'README.md', 'COMPATIBILITY.md', 'TEST_REPORT.md', 'PRIVACY.md', 'KNOWN_LIMITATIONS.md', 'POLICY_REVIEW.md', 'SAFARI_TROUBLESHOOTING.md', '.gitignore']) source[file] = new Uint8Array(await readFile(path.join(root, file)));
+for (const file of ['package.json', 'package-lock.json', 'wxt.config.ts', 'tsconfig.json', 'vitest.config.ts', 'playwright.config.ts', 'README.md', 'COMPATIBILITY.md', 'TEST_REPORT.md', 'PRIVACY.md', 'KNOWN_LIMITATIONS.md', 'POLICY_REVIEW.md', 'SAFARI_TROUBLESHOOTING.md', 'RELEASE_AND_UPDATES.md', '.gitignore']) source[file] = new Uint8Array(await readFile(path.join(root, file)));
 const sourceData = zipSync(source, { level: 9 }); await writeFile('dist/xtag-0.1.3-source.zip', sourceData);
 hashes.push(`${createHash('sha256').update(sourceData).digest('hex')}  xtag-0.1.3-source.zip`);
 await writeFile('dist/SHA256SUMS.txt', hashes.join('\n') + '\n');

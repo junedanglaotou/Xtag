@@ -1,5 +1,7 @@
 # Safari 使用故障排查（0.1.2）
 
+2026-10-18 更新：正式发布可使用 App Store Connect 的 Safari Web Extension Packager 网页上传 ZIP，不强制要求本地安装 Xcode。需要 Apple Developer Program 会员，后续仍有测试与商店审核。临时扩展会在退出 Safari 或 24 小时后移除，长期保存记录请走正式安装并先导出备份。完整步骤及费用见 [正式发布与保留记录更新](RELEASE_AND_UPDATES.md)。以下 Xcode 说明是另一条原生构建路径。
+
 0.1.2 已修复共享帖子识别器误排除普通 `<a role="link">` 的问题。已安装的旧 Safari 构建同样可能受影响，需重新构建 / 打包更新后的资源。用户截图显示此前 Safari 尚未安装完成，因此不能把 Arc 发现的 DOM 错误当作 Safari 已经实测的运行故障；安装、签名与站点授权仍需分开确认。
 
 这份记录区分原生 App 打包、Safari 启用、x.com 授权和页面功能。构建成功不等于真实 Safari 验证通过。
